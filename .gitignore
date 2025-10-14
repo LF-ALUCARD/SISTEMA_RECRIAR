@@ -1,0 +1,138 @@
+# ============================================
+# 🧠 GITIGNORE - JAVA / SPRING BOOT / ECLIPSE / REACT
+# ============================================
+
+##############################################
+# ☕ BACK-END: Java + Spring Boot + Eclipse
+##############################################
+
+# Eclipse metadata e configs locais
+**/.metadata/
+**/.settings/
+**/.classpath
+**/.project
+**/.factorypath
+**/.recommenders/
+
+# Build e compilação
+bin/
+target/
+build/
+out/
+dist/
+
+# Maven e Gradle
+.mvn/
+.mvnw
+.mvnw.cmd
+!/.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradlew
+!gradlew.bat
+
+# Logs
+*.log
+*.trace
+*.stacktrace
+hs_err_pid*
+
+# Arquivos temporários e cache
+*.tmp
+*.bak
+*.swp
+*.swo
+*.old
+*.orig
+*.class
+*.war
+*.ear
+*.jar
+*.zip
+
+# Banco de dados embutido (H2, SQLite, etc.)
+*.db
+*.mv.db
+*.h2.db
+
+##############################################
+# ⚛️ FRONT-END: React / JavaScript / HTML / CSS
+##############################################
+
+# Dependências
+node_modules/
+bower_components/
+
+# Build
+build/
+dist/
+.cache/
+.next/
+out/
+coverage/
+
+# Configs de bundlers
+.npm/
+.npmrc
+.yarn/
+.yarn-cache/
+.pnp.*
+.pnp.js
+
+# Arquivos de ambiente
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs e diagnósticos
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Arquivos de sistema e IDEs
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos de editor / IDE
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Lint / Config temporário
+.eslintcache
+stylelint.config.js
+tsconfig.tsbuildinfo
+
+##############################################
+# 🌐 HTML / CSS genéricos
+##############################################
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp
+*.swo
+*.old
+
+# Cache de frameworks (Ex: Vite, Parcel, etc.)
+.vite/
+.parcel-cache/
+vite.config.js.timestamp*
+
+##############################################
+# ✅ FIM DO GITIGNORE
+##############################################
