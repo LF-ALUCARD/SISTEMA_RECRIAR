@@ -1,0 +1,85 @@
+package recriar.gestao.entities;
+
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import recriar.gestao.entities.enums.Tipo;
+
+@Entity
+@Table(name = "usuarios")
+public class Usuario implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private String email;
+	private String senha_hash;
+	private Tipo tipo;
+	
+	@ManyToOne
+	@JoinColumn(name = "referencia_id")
+	@JsonManagedReference
+	private Professor professor;
+
+	public Usuario() {
+	}
+
+	public Usuario(Long id, String email, String senha_hash, Tipo tipo, Professor professor) {
+		this.id = id;
+		this.email = email;
+		this.senha_hash = senha_hash;
+		this.tipo = tipo;
+		this.professor = professor;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getSenha_hash() {
+		return senha_hash;
+	}
+
+	public void setSenha_hash(String senha_hash) {
+		this.senha_hash = senha_hash;
+	}
+
+	public Tipo getTipo() {
+		return tipo;
+	}
+
+	public void setTipo(Tipo tipo) {
+		this.tipo = tipo;
+	}
+
+	public Professor getProfessor() {
+		return professor;
+	}
+
+	public void setProfessor(Professor professor) {
+		this.professor = professor;
+	}
+
+}
