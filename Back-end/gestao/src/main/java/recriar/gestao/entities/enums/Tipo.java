@@ -2,8 +2,8 @@ package recriar.gestao.entities.enums;
 
 public enum Tipo {
 	
-	ADMIN(1),
-	PROFESSOR(2);
+	ADMIN(0),
+	PROFESSOR(1);
 	
 	private int code;
 	

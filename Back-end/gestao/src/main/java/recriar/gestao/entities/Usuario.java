@@ -2,14 +2,10 @@ package recriar.gestao.entities;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import recriar.gestao.entities.enums.Tipo;
 
@@ -25,21 +21,16 @@ public class Usuario implements Serializable {
 	private String email;
 	private String senha_hash;
 	private Tipo tipo;
-	
-	@ManyToOne
-	@JoinColumn(name = "referencia_id")
-	@JsonManagedReference
-	private Professor professor;
+	;
 
 	public Usuario() {
 	}
 
-	public Usuario(Long id, String email, String senha_hash, Tipo tipo, Professor professor) {
+	public Usuario(Long id, String email, String senha_hash, Tipo tipo) {
 		this.id = id;
 		this.email = email;
 		this.senha_hash = senha_hash;
 		this.tipo = tipo;
-		this.professor = professor;
 	}
 
 	public Long getId() {
@@ -72,14 +63,6 @@ public class Usuario implements Serializable {
 
 	public void setTipo(Tipo tipo) {
 		this.tipo = tipo;
-	}
-
-	public Professor getProfessor() {
-		return professor;
-	}
-
-	public void setProfessor(Professor professor) {
-		this.professor = professor;
 	}
 
 }
