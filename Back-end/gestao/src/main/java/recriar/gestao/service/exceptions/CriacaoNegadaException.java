@@ -1,4 +1,4 @@
-package recriar.gestao.repositories.exceptions;
+package recriar.gestao.service.exceptions;
 
 public class CriacaoNegadaException extends RuntimeException{
 

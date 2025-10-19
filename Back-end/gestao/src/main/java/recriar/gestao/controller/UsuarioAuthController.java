@@ -1,4 +1,4 @@
-package recriar.gestao;
+package recriar.gestao.controller;
 
 import java.net.URI;
 
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import recriar.gestao.entities.DTO.AuthResponseDTO;
+import recriar.gestao.entities.DTO.UsuarioLoginDTO;
 import recriar.gestao.entities.DTO.UsuarioRegisterDTO;
 import recriar.gestao.service.UsuarioService;
 
@@ -29,5 +30,13 @@ public class UsuarioAuthController {
 				.buildAndExpand(resposta.getUsuario().getId()).toUri();
 
 		return ResponseEntity.created(uri).body(resposta);
+	}
+	
+	@PostMapping(value = "login")
+	public ResponseEntity<AuthResponseDTO> register(@RequestBody UsuarioLoginDTO obj) {
+
+		AuthResponseDTO resposta = servico.login(obj);
+
+		return ResponseEntity.ok().body(resposta);
 	}
 }

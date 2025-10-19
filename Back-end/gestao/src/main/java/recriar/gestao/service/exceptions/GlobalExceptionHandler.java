@@ -1,4 +1,4 @@
-package recriar.gestao.repositories.exceptions;
+package recriar.gestao.service.exceptions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,5 +17,13 @@ public class GlobalExceptionHandler {
 		body.put("message", ex.getMessage());
 		body.put("error", "CRIAÇÃO NEGADA");
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+	}
+	
+	@ExceptionHandler(CredenciaisInvalidasException.class)
+	public ResponseEntity<Map<String,Object>> handlerCredencialInvalida(CredenciaisInvalidasException ex){
+		Map<String, Object> body = new HashMap<>();
+		body.put("message", ex.getMessage());
+		body.put("error", "ACESSO NEGADO");
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
 }
