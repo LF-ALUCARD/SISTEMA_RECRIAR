@@ -18,18 +18,19 @@ public class Usuario implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	private String nome;
 	private String email;
 	private String senha_hash;
-	private Tipo tipo;
-	;
+	private Tipo tipo;;
 
 	public Usuario() {
 	}
 
-	public Usuario(Long id, String email, String senha_hash, Tipo tipo) {
+	public Usuario(Long id, String nome, String email, String senha_hash, Tipo tipo) {
 		this.id = id;
 		this.email = email;
 		this.senha_hash = senha_hash;
+		this.nome = nome;
 		this.tipo = tipo;
 	}
 
@@ -63,6 +64,14 @@ public class Usuario implements Serializable {
 
 	public void setTipo(Tipo tipo) {
 		this.tipo = tipo;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
 
 }

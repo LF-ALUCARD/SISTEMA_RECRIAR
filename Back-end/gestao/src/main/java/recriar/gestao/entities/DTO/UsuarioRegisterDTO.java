@@ -6,6 +6,7 @@ public class UsuarioRegisterDTO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	private String nome;
 	private String email;
 	private String password;
 	private Integer tipo;
@@ -13,8 +14,9 @@ public class UsuarioRegisterDTO implements Serializable {
 	public UsuarioRegisterDTO() {
 	}
 
-	public UsuarioRegisterDTO(String email, String password, Integer tipo) {
+	public UsuarioRegisterDTO(String nome, String email, String password, Integer tipo) {
 		super();
+		this.nome = nome;
 		this.email = email;
 		this.password = password;
 		this.tipo = tipo;
@@ -42,6 +44,14 @@ public class UsuarioRegisterDTO implements Serializable {
 
 	public void setTipo(Integer tipo) {
 		this.tipo = tipo;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
 
 }

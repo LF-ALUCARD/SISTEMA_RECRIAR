@@ -5,13 +5,13 @@ import java.io.Serializable;
 import recriar.gestao.entities.Usuario;
 import recriar.gestao.entities.enums.Tipo;
 
-public class UsuarioInfoDTO implements Serializable{
+public class UsuarioInfoDTO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private Long id;
+	private String nome;
 	private String email;
-	private String senha;
 	private Tipo tipo;
 
 	public UsuarioInfoDTO() {
@@ -19,8 +19,8 @@ public class UsuarioInfoDTO implements Serializable{
 
 	public UsuarioInfoDTO(Usuario obj) {
 		this.id = obj.getId();
+		this.nome = obj.getNome();
 		this.email = obj.getEmail();
-		this.senha = obj.getSenha_hash();
 		this.tipo = obj.getTipo();
 	}
 
@@ -40,20 +40,20 @@ public class UsuarioInfoDTO implements Serializable{
 		this.email = email;
 	}
 
-	public String getSenha() {
-		return senha;
-	}
-
-	public void setSenha(String senha) {
-		this.senha = senha;
-	}
-
 	public Tipo getTipo() {
 		return tipo;
 	}
 
 	public void setTipo(Tipo tipo) {
 		this.tipo = tipo;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
 
 }

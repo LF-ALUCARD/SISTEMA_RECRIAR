@@ -26,4 +26,12 @@ public class GlobalExceptionHandler {
 		body.put("error", "ACESSO NEGADO");
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
+	
+	@ExceptionHandler(UsuarioInexistenteException.class)
+	public ResponseEntity<Map<String,Object>> handlerCredencialInvalida(UsuarioInexistenteException ex){
+		Map<String, Object> body = new HashMap<>();
+		body.put("message", ex.getMessage());
+		body.put("error", "USUÁRIO NÃO ENCONTRADO");
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+	}
 }
