@@ -9,6 +9,7 @@ import recriar.gestao.entities.DTO.AuthResponseDTO;
 import recriar.gestao.entities.DTO.ProfessorRegisterDTO;
 import recriar.gestao.entities.DTO.UsuarioInfoDTO;
 import recriar.gestao.entities.DTO.UsuarioLoginDTO;
+import recriar.gestao.entities.DTO.UsuarioProfileDTO;
 import recriar.gestao.entities.DTO.UsuarioRegisterDTO;
 import recriar.gestao.entities.enums.Tipo;
 import recriar.gestao.repositories.UsuarioRepository;
@@ -102,6 +103,28 @@ public class UsuarioService {
 	public UsuarioInfoDTO profile(Long id) {
 		Usuario entidade = repositor.findById(id).orElseThrow(() -> new UsuarioInexistenteException("Usuário não encontrado!"));
 		return new UsuarioInfoDTO(entidade);
+	}
+	
+	/* ----------------------------------------------------------------------------------------------*/
+	
+	public Usuario updateProfile(Long id, UsuarioProfileDTO obj) {
+		
+		if(repositor.existsByEmail(obj.getEmail()) && repositor.existsByNome(obj.getNome())) {
+			throw new CredenciaisInvalidasException("E-mail ou Nome já existentes");
+		}
+		
+		Usuario entidade = repositor.getReferenceById(id);
+		atualizar(entidade, obj);
+		
+		return repositor.save(entidade);
+		
+	}
+	
+	private void atualizar(Usuario entidade, UsuarioProfileDTO obj) {
+		
+		entidade.setNome(obj.getNome());
+		entidade.setEmail(obj.getEmail());
+		
 	}
 	
 	/* ----------------------------------------------------------------------------------------------*/
