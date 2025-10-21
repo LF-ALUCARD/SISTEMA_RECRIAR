@@ -9,6 +9,7 @@ import recriar.gestao.entities.DTO.AuthResponseDTO;
 import recriar.gestao.entities.DTO.ProfessorRegisterDTO;
 import recriar.gestao.entities.DTO.UsuarioInfoDTO;
 import recriar.gestao.entities.DTO.UsuarioLoginDTO;
+import recriar.gestao.entities.DTO.UsuarioPasswordDTO;
 import recriar.gestao.entities.DTO.UsuarioProfileDTO;
 import recriar.gestao.entities.DTO.UsuarioRegisterDTO;
 import recriar.gestao.entities.enums.Tipo;
@@ -125,6 +126,25 @@ public class UsuarioService {
 		entidade.setNome(obj.getNome());
 		entidade.setEmail(obj.getEmail());
 		
+	}
+	
+	/* ----------------------------------------------------------------------------------------------*/
+	
+	public Usuario updatePassword (Long id, UsuarioPasswordDTO obj) {
+		
+		Usuario entidade = repositor.getReferenceById(id);
+		
+		if (!passwordEncoder.matches(obj.getSenhaAtual(), entidade.getSenha_hash())) {
+		    throw new CredenciaisInvalidasException("SENHA INCORRETA");
+		}
+
+		if (passwordEncoder.matches(obj.getNovaSenha(), entidade.getSenha_hash())) {
+		    throw new CredenciaisInvalidasException("SENHA ANTERIOR NÃO PODE SER USADA");
+		}
+		
+		entidade.setSenha_hash(passwordEncoder.encode(obj.getNovaSenha()));
+		
+		return repositor.save(entidade);
 	}
 	
 	/* ----------------------------------------------------------------------------------------------*/

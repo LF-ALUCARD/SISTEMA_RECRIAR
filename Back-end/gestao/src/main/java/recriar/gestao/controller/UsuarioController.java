@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import recriar.gestao.entities.Usuario;
 import recriar.gestao.entities.DTO.UsuarioInfoDTO;
+import recriar.gestao.entities.DTO.UsuarioPasswordDTO;
 import recriar.gestao.entities.DTO.UsuarioProfileDTO;
 import recriar.gestao.service.UsuarioService;
 
@@ -36,4 +37,15 @@ public class UsuarioController {
 		
 		return ResponseEntity.ok().body(info);
 	}
+	
+	@PostMapping(value = "password/{id}")
+	public ResponseEntity<UsuarioInfoDTO> updatePassword(@PathVariable Long id, @RequestBody UsuarioPasswordDTO obj){
+		
+		Usuario entidade = service.updatePassword(id, obj);
+		UsuarioInfoDTO info = new UsuarioInfoDTO(entidade);
+		
+		return ResponseEntity.ok().body(info);				
+	}
+	
+	
 }
