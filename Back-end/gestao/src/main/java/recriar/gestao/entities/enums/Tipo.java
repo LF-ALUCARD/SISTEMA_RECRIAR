@@ -1,5 +1,7 @@
 package recriar.gestao.entities.enums;
 
+import recriar.gestao.entities.enums.exceptions.CodicoInvalidoException;
+
 public enum Tipo {
 	
 	ADMIN(0),
@@ -21,6 +23,6 @@ public enum Tipo {
 				return x;
 			}
 		}
-		throw new IllegalArgumentException("Códico invalido");
+		throw new CodicoInvalidoException("Códico invalido");
 	}
 }

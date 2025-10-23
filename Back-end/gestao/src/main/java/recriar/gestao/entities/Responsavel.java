@@ -30,7 +30,6 @@ public class Responsavel implements Serializable {
 	private String numero;
 	private String bairro;
 	private String cidade;
-	private String endereco_completo;
 
 	@OneToMany(mappedBy = "responsavel")
 	@JsonManagedReference
@@ -122,14 +121,6 @@ public class Responsavel implements Serializable {
 
 	public void setCidade(String cidade) {
 		this.cidade = cidade;
-	}
-
-	public String getEndereco_completo() {
-		return endereco_completo;
-	}
-
-	public void setEndereco_completo(String endereco_completo) {
-		this.endereco_completo = endereco_completo;
 	}
 
 	public List<Aluno> getAlunos() {

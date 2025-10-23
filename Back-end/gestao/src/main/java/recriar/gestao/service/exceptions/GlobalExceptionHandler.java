@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import recriar.gestao.entities.enums.exceptions.CodicoInvalidoException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -41,5 +43,13 @@ public class GlobalExceptionHandler {
 		body.put("message", ex.getMessage());
 		body.put("error", "BANCO NÃO CONECTADO");
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+	}
+	
+	@ExceptionHandler(CodicoInvalidoException.class)
+	public ResponseEntity<Map<String,Object>> BancoDeDados(CodicoInvalidoException ex){
+		Map<String, Object> body = new HashMap<>();
+		body.put("message", ex.getMessage());
+		body.put("error", "TIPO DE SEXO INVÁLIDO");
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
 }
