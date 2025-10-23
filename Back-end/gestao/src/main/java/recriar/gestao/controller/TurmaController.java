@@ -12,32 +12,31 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import recriar.gestao.entities.Professor;
-import recriar.gestao.entities.DTO.ProfessorRegisterDTO;
-import recriar.gestao.service.ProfessorService;
+import recriar.gestao.entities.Turma;
+import recriar.gestao.entities.DTO.TurmaRegisterDTO;
+import recriar.gestao.service.TurmaService;
 
 @RestController
-@RequestMapping(value = "api/professor")
-public class ProfessorController {
+@RequestMapping(value = "api/turma")
+public class TurmaController {
 
 	@Autowired
-	private ProfessorService servico;
+	private TurmaService service;
 	
 	@PostMapping(value = "register")
-	public ResponseEntity<Professor> register(@RequestBody ProfessorRegisterDTO obj){
+	public ResponseEntity<Turma> register(@RequestBody TurmaRegisterDTO obj){
 		
-		Professor entidade = servico.register(obj);
-		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-				.buildAndExpand(entidade.getId()).toUri();
-
+		Turma entidade = service.insertTurma(obj);
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(entidade.getId()).toUri();
+		
 		return ResponseEntity.created(uri).body(entidade);
 	}
 	
-	@DeleteMapping(value = "delete/{id}")
-	public ResponseEntity<Void> apagarProfessor(@PathVariable Long id){
+	@DeleteMapping("delete/{id}")
+	public ResponseEntity<Void> deleteTurma(@PathVariable Long id){
 		
-		servico.apagarProfessor(id);
+		service.apagarTurma(id);
 		
-		return ResponseEntity.noContent().build(); 
+		return ResponseEntity.noContent().build();
 	}
 }

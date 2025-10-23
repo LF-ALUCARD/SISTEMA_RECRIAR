@@ -1,9 +1,11 @@
 package recriar.gestao.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import recriar.gestao.entities.Usuario;
 import recriar.gestao.entities.DTO.AuthResponseDTO;
 import recriar.gestao.entities.DTO.ProfessorRegisterDTO;
@@ -15,6 +17,7 @@ import recriar.gestao.entities.DTO.UsuarioRegisterDTO;
 import recriar.gestao.entities.enums.Tipo;
 import recriar.gestao.repositories.UsuarioRepository;
 import recriar.gestao.security.GerarToken;
+import recriar.gestao.service.exceptions.BancoDeDadosExceptions;
 import recriar.gestao.service.exceptions.CredenciaisInvalidasException;
 import recriar.gestao.service.exceptions.CriacaoNegadaException;
 import recriar.gestao.service.exceptions.UsuarioInexistenteException;
@@ -77,6 +80,7 @@ public class UsuarioService {
 	private Usuario converter(ProfessorRegisterDTO obj) {
 		Usuario entidade = new Usuario();
 		
+		entidade.setNome(obj.getNome());
 		entidade.setEmail(obj.getEmail());
 		entidade.setSenha_hash(passwordEncoder.encode(obj.getPassword()));
 		entidade.setTipo(Tipo.PROFESSOR);
@@ -148,4 +152,25 @@ public class UsuarioService {
 	}
 	
 	/* ----------------------------------------------------------------------------------------------*/
+	
+	public void apagarUsuario(Long id) {
+		
+		try {
+			repositor.deleteById(id);
+		}
+		catch (DataIntegrityViolationException e) {
+			throw new BancoDeDadosExceptions(e.getMessage());
+		}
+	}
+	
+	@Transactional
+	public void apagarUsuario(String email) {
+		
+		try {
+			repositor.deleteByEmail(email);;
+		}
+		catch (DataIntegrityViolationException e) {
+			throw new BancoDeDadosExceptions(e.getMessage());
+		}
+	}
 }

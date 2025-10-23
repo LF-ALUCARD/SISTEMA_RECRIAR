@@ -34,4 +34,12 @@ public class GlobalExceptionHandler {
 		body.put("error", "USUÁRIO NÃO ENCONTRADO");
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
+	
+	@ExceptionHandler(BancoDeDadosExceptions.class)
+	public ResponseEntity<Map<String,Object>> BancoDeDados(BancoDeDadosExceptions ex){
+		Map<String, Object> body = new HashMap<>();
+		body.put("message", ex.getMessage());
+		body.put("error", "BANCO NÃO CONECTADO");
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+	}
 }

@@ -4,8 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import recriar.gestao.entities.Professor;
 
-public interface ProfessorRepository extends JpaRepository<Professor, Long>{
+public interface ProfessorRepository extends JpaRepository<Professor, Long> {
 	Professor findByEmail(String email);
-	
+
 	boolean existsByEmail(String email);
+
+	boolean existsByDocumento(String documento);
 }
