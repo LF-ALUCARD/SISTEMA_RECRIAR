@@ -1,7 +1,11 @@
 package recriar.gestao.entities.DTO;
 
-public class TurmaProfessorDTO {
+import java.io.Serializable;
 
+public class TurmaProfessorDTO implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+	
 	private Long professor_id;
 	private Long turma_id;
 
