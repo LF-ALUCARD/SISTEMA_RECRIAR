@@ -12,6 +12,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import recriar.gestao.entities.Aluno;
 import recriar.gestao.entities.DTO.AlunoRegisterDTO;
+import recriar.gestao.entities.DTO.AlunoRegisterResponseDTO;
 import recriar.gestao.service.AlunoService;
 
 @RestController
@@ -20,13 +21,25 @@ public class AlunoController {
 
 	@Autowired
 	private AlunoService service;
-	
+
 	@PostMapping(value = "register")
-	public ResponseEntity<Aluno> register(@RequestBody AlunoRegisterDTO obj){
+	public ResponseEntity<Aluno> register(@RequestBody AlunoRegisterDTO obj) {
+
 		Aluno entidade = service.criarAlunoComResponsavel(obj);
-		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-				.buildAndExpand(entidade.getId()).toUri();
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(entidade.getId())
+				.toUri();
+
 		return ResponseEntity.created(uri).body(entidade);
 	}
 	
+	@PostMapping(value = "register_responsavel")
+	public ResponseEntity<Aluno> register(@RequestBody AlunoRegisterResponseDTO obj) {
+
+		Aluno entidade = service.criarAlunoComResponsavel(obj);
+		URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(entidade.getId())
+				.toUri();
+
+		return ResponseEntity.created(uri).body(entidade);
+	}
+
 }

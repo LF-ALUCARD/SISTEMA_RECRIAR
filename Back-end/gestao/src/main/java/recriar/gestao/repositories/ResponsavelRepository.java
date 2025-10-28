@@ -6,4 +6,5 @@ import recriar.gestao.entities.Responsavel;
 
 public interface ResponsavelRepository extends JpaRepository<Responsavel, Long> {
 	
+	boolean existsByDocumento(String documento);
 }

@@ -1,6 +1,7 @@
 package recriar.gestao.entities.DTO;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 public class AlunoRegisterDTO implements Serializable {
 
@@ -13,6 +14,7 @@ public class AlunoRegisterDTO implements Serializable {
 	private String documento;
 	private Integer idade;
 	private Integer sexo;
+	private LocalDate data_matricula;
 
 	// Dados do responsável
 	private String responsavelNome;
@@ -159,6 +161,14 @@ public class AlunoRegisterDTO implements Serializable {
 
 	public void setCidade(String cidade) {
 		this.cidade = cidade;
+	}
+
+	public LocalDate getData_matricula() {
+		return data_matricula;
+	}
+
+	public void setData_matricula(LocalDate data_matricula) {
+		this.data_matricula = data_matricula;
 	}
 
 }
