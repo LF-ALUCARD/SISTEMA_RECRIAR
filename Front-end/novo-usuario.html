@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Novo Usuário</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <!-- Menu via JS -->
+    <div id="menu-container"></div>
+
+    <main>
+        <div class="container">
+            <h2>Novo Usuário</h2>
+            <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+
+            <form id="form-novo-usuario" action="#" method="post">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <span id="email-error" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required>
+                    <span id="senha-error" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo">Tipo de Usuário</label>
+                    <select id="tipo" name="tipo" required>
+                        <option value="">Selecione</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="PROFESSOR">Professor</option>
+                    </select>
+                    <span id="tipo-error" class="error-message"></span>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('form-novo-usuario');
+            if (!form) return;
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                UI.clearFormErrors('form-novo-usuario');
+
+                const emailValid = UI.validateRequired('email', 'email-error');
+                const senhaValid = UI.validateRequired('senha', 'senha-error');
+                const tipoValid = UI.validateRequired('tipo', 'tipo-error');
+
+                if (!emailValid || !senhaValid || !tipoValid) {
+                    UI.showMessage("Por favor, preencha todos os campos obrigatórios.", "error");
+                    return;
+                }
+
+                const novoUsuario = {
+                    email: document.getElementById('email').value.trim(),
+                    senha: document.getElementById('senha').value.trim(), // A senha será hash no backend
+                    tipo: document.getElementById('tipo').value
+                };
+
+                try {
+                    let endpoint = '';
+                    if (novoUsuario.tipo === 'ADMIN') {
+                        endpoint = '/admin'; // Endpoint para criar admin
+                    } else if (novoUsuario.tipo === 'PROFESSOR') {
+                        endpoint = '/professor'; // Endpoint para criar professor
+                    } else {
+                        throw new Error('Tipo de usuário inválido.');
+                    }
+
+                    const response = await API.post(endpoint, novoUsuario);
+                    console.log('Usuário cadastrado com sucesso:', response);
+                    UI.showMessage('Usuário cadastrado com sucesso!', 'success');
+                    form.reset();
+                } catch (error) {
+                    console.error('Erro ao cadastrar usuário:', error);
+                    UI.showMessage(error.message || 'Erro ao cadastrar usuário. Tente novamente.', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

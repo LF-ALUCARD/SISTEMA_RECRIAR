@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Instituto Recriar</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js" defer></script>
+</head>
+<body class="login-page">
+  <div class="barra-lateral">
+    <h1>Instituto Recriar</h1>
+    <p>Sistema de Gestão Escolar</p>
+  </div>
+
+  <main>
+    <div class="container">
+      <h2>Login</h2>
+      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Usuário</label>
+          <input type="text" id="username" placeholder="Digite seu usuário">
+          <span id="username-error" class="error-message"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="Digite sua senha">
+          <span id="password-error" class="error-message"></span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="login-btn">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginForm = document.getElementById('login-form');
+      if (!loginForm) return;
+
+      loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        UI.clearFormErrors('login-form');
+
+        const usernameValid = UI.validateRequired('username', 'username-error');
+        const passwordValid = UI.validateRequired('password', 'password-error');
+
+        if (!usernameValid || !passwordValid) return;
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        try {
+          // Substituir esta simulação pela chamada à API de autenticação do backend
+          const response = await API.post("/auth/login", { email: username, password: password });
+
+          const token = response.token;
+          const user_type = response.usuario.tipo; // Extrai o tipo de dentro do objeto 'usuario'
+
+
+          // Armazenar o token de autenticação e o tipo de usuário
+          sessionStorage.setItem("auth_token", token);
+          sessionStorage.setItem("user_type", user_type);
+          sessionStorage.setItem("login_timestamp", new Date().toISOString());
+
+          window.location.href = "menu.html";
+        } catch (error) {
+          console.error('Erro no login:', error);
+          UI.showMessage(error.message || 'Não foi possível realizar o login. Tente novamente.', 'error');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

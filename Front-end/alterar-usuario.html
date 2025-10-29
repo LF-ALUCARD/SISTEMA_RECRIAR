@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Alterar Usuário</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <!-- Menu via JS -->
+    <div id="menu-container"></div>
+
+    <main>
+        <div class="container">
+            <h2>Alterar Usuário</h2>
+            <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+
+            <form id="form-alterar-usuario">
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" required>
+                    <span id="email-error" class="error-message"></span>
+                </div>
+
+                <!-- O campo 'tipo' não é alterável via PUT /api/user/profile, mas pode ser relevante para exibição ou para um PUT /api/admin/user/{id} -->
+                <!-- Por enquanto, vamos considerar apenas email para /api/user/profile -->
+                <!-- Se houver um endpoint para admin alterar tipo de usuário, este campo seria habilitado -->
+                <!--
+                <div class="form-group">
+                    <label for="tipo">Tipo de Usuário</label>
+                    <select id="tipo" name="tipo" required disabled>
+                        <option value="ADMIN">Admin</option>
+                        <option value="PROFESSOR">Professor</option>
+                    </select>
+                    <span id="tipo-error" class="error-message"></span>
+                </div>
+                -->
+
+                <div class="form-actions">
+                    <button type="submit">Salvar Alterações</button>
+                </div>
+            </form>
+
+            <h3 style="margin-top: 2rem;">Alterar Senha</h3>
+            <form id="form-alterar-senha">
+                <div class="form-group">
+                    <label for="current_password">Senha Atual</label>
+                    <input type="password" id="current_password" name="current_password" required>
+                    <span id="current_password-error" class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">Nova Senha</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                    <span id="new_password-error" class="error-message"></span>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_new_password">Confirmar Nova Senha</label>
+                    <input type="password" id="confirm_new_password" name="confirm_new_password" required>
+                    <span id="confirm_new_password-error" class="error-message"></span>
+                </div>
+                <div class="form-actions">
+                    <button type="submit">Alterar Senha</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!Auth.requireAuth()) return;
+
+            // Carregar dados do usuário logado para preencher o formulário de perfil
+            carregarDadosUsuario();
+
+            const formAlterarUsuario = document.getElementById("form-alterar-usuario");
+            if (formAlterarUsuario) {
+                formAlterarUsuario.addEventListener("submit", async function(e){
+                    e.preventDefault();
+                    salvarAlteracoesUsuario();
+                });
+            }
+
+            const formAlterarSenha = document.getElementById("form-alterar-senha");
+            if (formAlterarSenha) {
+                formAlterarSenha.addEventListener("submit", async function(e){
+                    e.preventDefault();
+                    salvarNovaSenha();
+                });
+            }
+        });
+
+        async function carregarDadosUsuario() {
+            try {
+                const userInfo = await API.get("/user/account-info");
+                if (userInfo && userInfo.email) {
+                    document.getElementById("email").value = userInfo.email;
+                    // Se o campo tipo estivesse habilitado:
+                    // document.getElementById("tipo").value = userInfo.tipo;
+                } else {
+                    UI.showMessage("Não foi possível carregar as informações do usuário.", "error");
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados do usuário:", error);
+                UI.showMessage("Erro ao carregar dados do usuário.", "error");
+            }
+        }
+
+        async function salvarAlteracoesUsuario() {
+            UI.clearFormErrors("form-alterar-usuario");
+
+            const emailValid = UI.validateRequired("email", "email-error");
+            if (!emailValid) {
+                UI.showMessage("Por favor, preencha o campo de e-mail.", "error");
+                return;
+            }
+
+            const dadosUsuarioAtualizados = {
+                email: document.getElementById("email").value.trim()
+            };
+
+            try {
+                await API.put("/user/profile", dadosUsuarioAtualizados);
+                UI.showMessage("Perfil atualizado com sucesso!", "success");
+            } catch (error) {
+                console.error("Erro ao salvar alterações do perfil:", error);
+                UI.showMessage(error.message || "Erro ao salvar alterações do perfil.", "error");
+            }
+        }
+
+        async function salvarNovaSenha() {
+            UI.clearFormErrors("form-alterar-senha");
+
+            const currentPassword = document.getElementById("current_password").value;
+            const newPassword = document.getElementById("new_password").value;
+            const confirmNewPassword = document.getElementById("confirm_new_password").value;
+
+            const currentPasswordValid = UI.validateRequired("current_password", "current_password-error");
+            const newPasswordValid = UI.validateRequired("new_password", "new_password-error");
+            const confirmNewPasswordValid = UI.validateRequired("confirm_new_password", "confirm_new_password-error");
+
+            if (!currentPasswordValid || !newPasswordValid || !confirmNewPasswordValid) {
+                UI.showMessage("Por favor, preencha todos os campos de senha.", "error");
+                return;
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                UI.setFormError("confirm_new_password", "As novas senhas não coincidem.");
+                UI.showMessage("As novas senhas não coincidem.", "error");
+                return;
+            }
+
+            if (newPassword.length < 6) { // Exemplo de validação de senha
+                UI.setFormError("new_password", "A nova senha deve ter no mínimo 6 caracteres.");
+                UI.showMessage("A nova senha deve ter no mínimo 6 caracteres.", "error");
+                return;
+            }
+
+            const dadosSenhaAtualizados = {
+                current_password: currentPassword,
+                new_password: newPassword
+            };
+
+            try {
+                await API.put("/user/password", dadosSenhaAtualizados);
+                UI.showMessage("Senha alterada com sucesso!", "success");
+                formAlterarSenha.reset();
+            } catch (error) {
+                console.error("Erro ao alterar senha:", error);
+                UI.showMessage(error.message || "Erro ao alterar senha. Tente novamente.", "error");
+            }
+        }
+    </script>
+</body>
+</html>

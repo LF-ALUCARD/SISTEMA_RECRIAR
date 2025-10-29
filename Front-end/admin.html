@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - Sistema Recriar</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <div id="menu-container"></div>
+
+    <main>
+        <div class="container">
+            <h2>Administração do Sistema</h2>
+            <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+
+            <div class="crud-bar">
+                <input type="search" 
+                       id="buscar-usuario" 
+                       placeholder="Buscar por nome ou email..." 
+                       aria-label="Buscar usuários">
+                <button type="button" 
+                        id="btn-novo-admin" 
+                        class="btn-success" 
+                        onclick="window.location.href=\'novo-usuario.html?type=admin\'">
+                    Novo Admin
+                </button>
+                <button type="button" 
+                        id="btn-novo-professor" 
+                        class="btn-success" 
+                        onclick="window.location.href=\'novo-usuario.html?type=professor\'">
+                    Novo Professor
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="table" id="tabela-usuarios">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Tipo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-usuarios">
+                        <!-- Dados carregados via JavaScript -->
+                    </tbody>
+                </table>
+                <div id="no-data-message" class="no-data-message" style="display: none;">
+                    <p>Nenhum usuário encontrado.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (!Auth.requireAuth()) return;
+
+            const searchInput = document.getElementById("buscar-usuario");
+            searchInput.addEventListener("input", debounce(loadUsuarios, 300));
+
+            loadUsuarios();
+        });
+
+        async function loadUsuarios() {
+            const searchTerm = document.getElementById("buscar-usuario").value.trim();
+            
+            try {
+                // Para simplificar, vamos listar todos os professores e admins como "usuários" aqui.
+                // Em um cenário real, você pode ter um endpoint /api/users que lista todos os usuários independentemente do tipo.
+                const professores = await API.get(`/professor`); // Assumindo que /api/professor lista todos os professores
+                // const admins = await API.get(`/admin`); // Se houver um endpoint para listar admins
+
+                let allUsers = [];
+                if (professores) {
+                    allUsers = allUsers.concat(professores.map(p => ({ id: p.id, email: p.email, tipo: "PROFESSOR" })));
+                }
+                // if (admins) {
+                //     allUsers = allUsers.concat(admins.map(a => ({ id: a.id, email: a.email, tipo: "ADMIN" })));
+                // }
+
+                // Filtrar por termo de busca se houver
+                const filteredUsers = allUsers.filter(user => 
+                    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.tipo.toLowerCase().includes(searchTerm.toLowerCase()) // Ou outros campos relevantes
+                );
+
+                renderTabelaUsuarios(filteredUsers);
+            } catch (error) {
+                console.error("Erro ao carregar usuários:", error);
+                UI.showMessage("Não foi possível carregar a lista de usuários.", "error");
+                renderTabelaUsuarios([]); // Limpa a tabela em caso de erro
+            }
+        }
+
+        function renderTabelaUsuarios(usuarios) {
+            const tbody = document.getElementById("tbody-usuarios");
+            const noDataMessage = document.getElementById("no-data-message");
+            tbody.innerHTML = "";
+
+            if (!usuarios || usuarios.length === 0) {
+                noDataMessage.style.display = "block";
+                return;
+            }
+
+            noDataMessage.style.display = "none";
+
+            usuarios.forEach(usuario => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${usuario.id}</td>
+                    <td>${usuario.email}</td>
+                    <td>${usuario.tipo}</td>
+                    <td>
+                        <button class="btn-action" onclick="editarUsuario(${usuario.id}, \'${usuario.tipo}\')">Editar</button>
+                        <button class="btn-action btn-danger" onclick="excluirUsuario(${usuario.id}, \'${usuario.tipo}\')">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+
+        function editarUsuario(id, tipo) {
+            // Redireciona para a página de edição apropriada com base no tipo de usuário
+            if (tipo === 'PROFESSOR') {
+                window.location.href = `alterar-professor.html?id=${id}`;
+            } else if (tipo === 'ADMIN') {
+                // Se houver uma página específica para editar admin, redirecionar para lá
+                // Por enquanto, podemos usar a página de alterar-usuario para o email/senha
+                window.location.href = `alterar-usuario.html?id=${id}`;
+            } else {
+                UI.showMessage("Tipo de usuário desconhecido para edição.", "error");
+            }
+        }
+
+        async function excluirUsuario(id, tipo) {
+            if (!confirm("Tem certeza de que deseja excluir este usuário?")) {
+                return;
+            }
+
+            try {
+                let endpoint = '';
+                if (tipo === 'PROFESSOR') {
+                    endpoint = `/professor/${id}`;
+                } else if (tipo === 'ADMIN') {
+                    // Se houver um endpoint para excluir admin
+                    // endpoint = `/admin/${id}`;
+                    UI.showMessage("Exclusão de administradores não implementada via API.", "error");
+                    return;
+                } else {
+                    UI.showMessage("Tipo de usuário desconhecido para exclusão.", "error");
+                    return;
+                }
+
+                await API.delete(endpoint);
+                UI.showMessage("Usuário excluído com sucesso!", "success");
+                loadUsuarios(); // Recarrega a lista
+            } catch (error) {
+                console.error("Erro ao excluir usuário:", error);
+                UI.showMessage(error.message || "Erro ao excluir usuário.", "error");
+            }
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+    </script>
+</body>
+</html>

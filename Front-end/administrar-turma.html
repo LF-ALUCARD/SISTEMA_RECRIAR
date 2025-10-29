@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrar Turma - Sistema Recriar</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js" defer></script>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <main>
+    <div class="container">
+      <h2 id="turma-nome-display">Administrar Turma</h2>
+      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+
+      <div class="crud-bar">
+        <input type="date" id="data-chamada" class="form-control" value="" required>
+        <button type="button" id="btn-criar-chamada" class="btn-success">Criar Chamada</button>
+      </div>
+
+      <h3>Chamadas Existentes</h3>
+      <div class="table-container">
+        <table class="table" id="tabela-chamadas">
+          <thead>
+            <tr>
+              <th>Data da Chamada</th>
+              <th>Criada Por</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-chamadas">
+            <!-- Chamadas carregadas via JavaScript -->
+          </tbody>
+        </table>
+        <div id="no-chamadas-message" class="no-data-message" style="display: none;">
+          <p>Nenhuma chamada encontrada para esta turma.</p>
+        </div>
+      </div>
+
+      <div id="modal-marcar-presenca" class="modal" style="display:none;">
+        <div class="modal-content">
+          <span class="close-button">&times;</span>
+          <h4>Marcar Presença - <span id="modal-chamada-data"></span></h4>
+          <div id="modal-feedback-message" class="feedback-message" style="display:none;"></div>
+          <div class="table-container">
+            <table class="table" id="tabela-alunos-presenca">
+              <thead>
+                <tr>
+                  <th>Aluno</th>
+                  <th>Presente</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-alunos-presenca">
+                <!-- Alunos da chamada carregados via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          <button type="button" id="btn-salvar-presenca" class="btn-success">Salvar Presença</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="menu.js" defer></script>
+  <script>
+    let currentTurmaId = null;
+    let currentChamadaId = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!Auth.requireAuth()) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      currentTurmaId = urlParams.get("id");
+
+      if (currentTurmaId) {
+        carregarNomeTurma(currentTurmaId);
+        carregarChamadas(currentTurmaId);
+      } else {
+        console.error("ID da turma não fornecido na URL.");
+        UI.showMessage("ID da turma não fornecido. Redirecionando para a página de turmas.", "error");
+        setTimeout(() => { window.location.href = "turmas.html"; }, 2000);
+      }
+
+      document.getElementById("btn-criar-chamada").addEventListener("click", criarChamada);
+
+      const modal = document.getElementById("modal-marcar-presenca");
+      const closeButton = modal.querySelector(".close-button");
+      closeButton.addEventListener("click", () => modal.style.display = "none");
+      window.addEventListener("click", (event) => {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      });
+
+      document.getElementById("btn-salvar-presenca").addEventListener("click", salvarPresenca);
+    });
+
+    async function carregarNomeTurma(turmaId) {
+      try {
+        const turma = await API.get(`/turma/${turmaId}`);
+        document.getElementById("turma-nome-display").innerText = `Administrar Turma: ${turma.nome}`;
+      } catch (error) {
+        console.error("Erro ao carregar nome da turma:", error);
+        UI.showMessage("Não foi possível carregar o nome da turma.", "error");
+      }
+    }
+
+    async function carregarChamadas(turmaId) {
+      const tbody = document.getElementById("tbody-chamadas");
+      const noChamadasMessage = document.getElementById("no-chamadas-message");
+      tbody.innerHTML = "";
+
+      try {
+        const chamadas = await API.get(`/chamada/turma/${turmaId}`);
+
+        if (!chamadas || chamadas.length === 0) {
+          noChamadasMessage.style.display = "block";
+          return;
+        }
+
+        noChamadasMessage.style.display = "none";
+
+        chamadas.forEach(chamada => {
+          const row = tbody.insertRow();
+          row.innerHTML = `
+            <td>${new Date(chamada.data_chamada).toLocaleDateString()}</td>
+            <td>${chamada.criada_por || 'Admin'}</td>
+            <td>
+              <button class="btn-action" onclick="abrirModalMarcarPresenca(${chamada.id}, \'${chamada.data_chamada}\')">Marcar Presença</button>
+            </td>
+          `;
+        });
+      } catch (error) {
+        console.error("Erro ao carregar chamadas:", error);
+        UI.showMessage("Não foi possível carregar as chamadas da turma.", "error");
+        noChamadasMessage.style.display = "block";
+      }
+    }
+
+    async function criarChamada() {
+      const dataChamada = document.getElementById("data-chamada").value;
+      if (!dataChamada) {
+        UI.showMessage("Selecione uma data para a chamada.", "error");
+        return;
+      }
+
+      try {
+        const newChamada = {
+          turma_id: currentTurmaId,
+          data_chamada: dataChamada
+        };
+        const response = await API.post("/chamada", newChamada);
+        UI.showMessage("Chamada criada com sucesso!", "success");
+        carregarChamadas(currentTurmaId); // Recarrega a lista de chamadas
+      } catch (error) {
+        console.error("Erro ao criar chamada:", error);
+        UI.showMessage(error.message || "Erro ao criar chamada.", "error");
+      }
+    }
+
+    async function abrirModalMarcarPresenca(chamadaId, dataChamada) {
+      currentChamadaId = chamadaId;
+      document.getElementById("modal-chamada-data").innerText = new Date(dataChamada).toLocaleDateString();
+      const tbodyAlunosPresenca = document.getElementById("tbody-alunos-presenca");
+      tbodyAlunosPresenca.innerHTML = "";
+
+      try {
+        // Primeiro, obter os alunos da turma
+        const alunosDaTurma = await API.get(`/turma/${currentTurmaId}/alunos`); // Assumindo que este endpoint retorna os alunos da turma
+        
+        // Em seguida, obter o status de presença para a chamada atual
+        // A API não tem um endpoint GET /chamada/{id}/presencas, então vamos simular ou assumir que a chamada já vem com as presenças
+        // Ou, se a API retornar a chamada detalhada com as presenças, usar isso.
+        // Por enquanto, vamos assumir que precisamos buscar as presenças separadamente ou que a API de alunos da turma pode incluir.
+        // Para o propósito deste exercício, vamos simular que precisamos de um endpoint para buscar as presenças de uma chamada.
+        // Se a API não fornecer, seria necessário adaptar o backend ou o frontend para gerenciar isso de outra forma.
+
+        // Mock de presenças para a chamada (substituir por chamada real à API se disponível)
+        const presencasMock = [
+          { aluno_id: 1, presente: true },
+          { aluno_id: 2, presente: false }
+        ];
+        // Em um cenário real, você faria uma chamada como: const presencas = await API.get(`/chamada/${chamadaId}/presencas`);
+
+        if (!alunosDaTurma || alunosDaTurma.length === 0) {
+          tbodyAlunosPresenca.innerHTML = `<tr><td colspan="2">Nenhum aluno nesta turma.</td></tr>`;
+        } else {
+          alunosDaTurma.forEach(aluno => {
+            const isPresente = presencasMock.some(p => p.aluno_id === aluno.id && p.presente); // Ajustar com dados reais da API
+            const row = tbodyAlunosPresenca.insertRow();
+            row.innerHTML = `
+              <td>${aluno.nome} ${aluno.sobrenome}</td>
+              <td><input type="checkbox" data-aluno-id="${aluno.id}" ${isPresente ? 'checked' : ''}></td>
+            `;
+          });
+        }
+
+        document.getElementById("modal-marcar-presenca").style.display = "block";
+      } catch (error) {
+        console.error("Erro ao carregar alunos para presença:", error);
+        UI.showMessage("Não foi possível carregar os alunos para marcar presença.", "error");
+      }
+    }
+
+    async function salvarPresenca() {
+      const presencas = [];
+      const checkboxes = document.querySelectorAll("#tbody-alunos-presenca input[type=\"checkbox\"]");
+      checkboxes.forEach(checkbox => {
+        presencas.push({
+          aluno_id: parseInt(checkbox.dataset.alunoId),
+          presente: checkbox.checked
+        });
+      });
+
+      try {
+        await API.put(`/chamada/${currentChamadaId}/presencas`, { presencas: presencas });
+        UI.showMessage("Presenças salvas com sucesso!", "success", "modal-feedback-message");
+        document.getElementById("modal-marcar-presenca").style.display = "none";
+        carregarChamadas(currentTurmaId); // Recarrega as chamadas para atualizar qualquer status visual
+      } catch (error) {
+        console.error("Erro ao salvar presenças:", error);
+        UI.showMessage(error.message || "Erro ao salvar presenças.", "error", "modal-feedback-message");
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alterar Professor - Sistema Recriar</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js" defer></script>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <main>
+    <div class="container">
+      <h2>Alterar Professor</h2>
+      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+
+      <form id="form-alterar-professor">
+        <div class="form-group">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" required>
+          <span id="nome-error" class="error-message"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+          <span id="email-error" class="error-message"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="documento">Documento</label>
+          <input type="text" id="documento" name="documento" required>
+          <span id="documento-error" class="error-message"></span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="menu.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!Auth.requireAuth()) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const professorId = urlParams.get("id");
+
+      if (professorId) {
+        carregarDadosProfessor(professorId);
+      } else {
+        console.error("ID do professor não fornecido na URL.");
+        UI.showMessage("ID do professor não fornecido. Redirecionando para a página de professores.", "error");
+        setTimeout(() => { window.location.href = "professores.html"; }, 2000);
+      }
+
+      document.getElementById("form-alterar-professor").addEventListener("submit", async function(e){
+        e.preventDefault();
+        salvarAlteracoesProfessor(professorId);
+      });
+    });
+
+    async function carregarDadosProfessor(id) {
+      try {
+        const professor = await API.get(`/professor/${id}`);
+        
+        document.getElementById("nome").value = professor.nome;
+        document.getElementById("email").value = professor.email;
+        document.getElementById("documento").value = professor.documento;
+
+      } catch (error) {
+        console.error("Erro ao carregar dados do professor:", error);
+        UI.showMessage("Não foi possível carregar os dados do professor.", "error");
+        setTimeout(() => { window.location.href = "professores.html"; }, 2000);
+      }
+    }
+
+    async function salvarAlteracoesProfessor(id) {
+      UI.clearFormErrors("form-alterar-professor");
+
+      const nomeValid = UI.validateRequired("nome", "nome-error");
+      const emailValid = UI.validateRequired("email", "email-error");
+      const documentoValid = UI.validateRequired("documento", "documento-error");
+
+      if (!nomeValid || !emailValid || !documentoValid) {
+        UI.showMessage("Por favor, preencha todos os campos obrigatórios.", "error");
+        return;
+      }
+
+      const dadosProfessorAtualizados = {
+        nome: document.getElementById("nome").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        documento: document.getElementById("documento").value.trim()
+      };
+
+      try {
+        await API.put(`/professor/${id}`, dadosProfessorAtualizados);
+        UI.showMessage("Professor alterado com sucesso!", "success");
+        setTimeout(() => { window.location.href = "professores.html"; }, 2000);
+      } catch (error) {
+        console.error("Erro ao salvar alterações do professor:", error);
+        UI.showMessage(error.message || "Erro ao salvar alterações do professor.", "error");
+      }
+    }
+  </script>
+</body>
+</html>

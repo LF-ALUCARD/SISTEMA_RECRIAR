@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Excluir Aluno - Sistema Recriar</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <div id="menu-container"></div>
+
+    <main>
+        <div class="container">
+            <h2>Excluir Aluno</h2>
+            <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+
+            <p>Tem certeza que deseja excluir o aluno abaixo?</p>
+
+            <div id="dadosAluno" class="card" style="margin: 1rem 0; padding: 1rem;"></div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-danger" onclick="confirmarExclusao()">Confirmar Exclusão</button>
+                <button type="button" class="btn-secundario" onclick="cancelarExclusao()">Cancelar</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        let alunoIdToDelete = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!Auth.requireAuth()) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            alunoIdToDelete = urlParams.get("id");
+
+            if (alunoIdToDelete) {
+                carregarDadosAlunoParaExclusao(alunoIdToDelete);
+            } else {
+                console.error("ID do aluno não fornecido na URL.");
+                UI.showMessage("ID do aluno não fornecido. Redirecionando para a página de alunos.", "error");
+                setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+            }
+        });
+
+        async function carregarDadosAlunoParaExclusao(id) {
+            try {
+                const aluno = await API.get(`/aluno/${id}`);
+                if (aluno) {
+                    document.getElementById("dadosAluno").innerHTML = `
+                        <p><strong>ID:</strong> ${aluno.id}</p>
+                        <p><strong>Nome:</strong> ${aluno.nome} ${aluno.sobrenome}</p>
+                        <p><strong>Documento:</strong> ${aluno.documento}</p>
+                    `;
+                } else {
+                    UI.showMessage("Aluno não encontrado.", "error");
+                    setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados do aluno para exclusão:", error);
+                UI.showMessage("Não foi possível carregar os dados do aluno.", "error");
+                setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+            }
+        }
+
+        async function confirmarExclusao() {
+            if (!alunoIdToDelete) {
+                UI.showMessage("ID do aluno não encontrado para exclusão.", "error");
+                return;
+            }
+
+            try {
+                await API.delete(`/aluno/${alunoIdToDelete}`);
+                UI.showMessage("Aluno excluído com sucesso!", "success");
+                setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+            } catch (error) {
+                console.error("Erro ao excluir aluno:", error);
+                UI.showMessage(error.message || "Erro ao excluir aluno.", "error");
+            }
+        }
+
+        function cancelarExclusao() {
+            window.location.href = "alunos.html";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alterar Turma - Sistema Recriar</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js" defer></script>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <main>
+    <div class="container">
+      <h2>Alterar Turma</h2>
+      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+
+      <form id="form-alterar-turma">
+        <div class="form-group">
+          <label for="nome">Nome da Turma</label>
+          <input type="text" id="nome" name="nome" required>
+          <span id="nome-error" class="error-message"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" name="descricao" rows="4"></textarea>
+          <span id="descricao-error" class="error-message"></span>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="menu.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!Auth.requireAuth()) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const turmaId = urlParams.get("id");
+
+      if (turmaId) {
+        carregarDadosTurma(turmaId);
+      } else {
+        console.error("ID da turma não fornecido na URL.");
+        UI.showMessage("ID da turma não fornecido. Redirecionando para a página de turmas.", "error");
+        setTimeout(() => { window.location.href = "turmas.html"; }, 2000);
+      }
+
+      document.getElementById("form-alterar-turma").addEventListener("submit", async function(e){
+        e.preventDefault();
+        salvarAlteracoesTurma(turmaId);
+      });
+    });
+
+    async function carregarDadosTurma(id) {
+      try {
+        const turma = await API.get(`/turma/${id}`);
+        
+        document.getElementById("nome").value = turma.nome;
+        document.getElementById("descricao").value = turma.descricao;
+
+      } catch (error) {
+        console.error("Erro ao carregar dados da turma:", error);
+        UI.showMessage("Não foi possível carregar os dados da turma.", "error");
+        setTimeout(() => { window.location.href = "turmas.html"; }, 2000);
+      }
+    }
+
+    async function salvarAlteracoesTurma(id) {
+      UI.clearFormErrors("form-alterar-turma");
+
+      const nomeValid = UI.validateRequired("nome", "nome-error");
+
+      if (!nomeValid) {
+        UI.showMessage("Por favor, preencha o nome da turma.", "error");
+        return;
+      }
+
+      const dadosTurmaAtualizados = {
+        nome: document.getElementById("nome").value.trim(),
+        descricao: document.getElementById("descricao").value.trim()
+      };
+
+      try {
+        await API.put(`/turma/${id}`, dadosTurmaAtualizados);
+        UI.showMessage("Turma alterada com sucesso!", "success");
+        setTimeout(() => { window.location.href = "turmas.html"; }, 2000);
+      } catch (error) {
+        console.error("Erro ao salvar alterações da turma:", error);
+        UI.showMessage(error.message || "Erro ao salvar alterações da turma.", "error");
+      }
+    }
+  </script>
+</body>
+</html>

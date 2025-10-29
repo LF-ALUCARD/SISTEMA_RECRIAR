@@ -1,10 +1,13 @@
 package recriar.gestao.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import recriar.gestao.entities.Aluno;
 import recriar.gestao.entities.Responsavel;
+import recriar.gestao.entities.DTO.AlunoListDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterResponseDTO;
 import recriar.gestao.entities.enums.Sexo;
@@ -95,4 +98,12 @@ public class AlunoService {
 		return aluno;
 	}
 	/*-------------------------------------------------------------------------*/
+	
+	public List<AlunoListDTO> findAll(){
+		
+		List<Aluno> lista = repositorAluno.findAll();
+		List<AlunoListDTO> listagem = lista.stream().map(x -> new AlunoListDTO(x)).toList();
+		
+		return listagem;
+	}
 }

@@ -1,0 +1,161 @@
+_HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Alunos - Sistema Recriar</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <div id="menu-container"></div>
+
+    <main>
+        <div class="container">
+            <h2>Gestão de Alunos</h2>
+            <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+
+            <div class="crud-bar">
+                <input type="search" 
+                       id="buscar-aluno" 
+                       placeholder="Buscar por nome..." 
+                       aria-label="Buscar alunos">
+                <button type="button" 
+                        id="btn-incluir" 
+                        class="btn-success" 
+                        onclick="window.location.href='novo-aluno.html'">
+                    Novo Aluno
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="table" id="tabela-alunos">
+                    <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Nome Completo</th>
+                            <th>Idade</th>
+                            <th>Sexo</th>
+                            <th>Data de Matrícula</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-alunos">
+                        <!-- Dados carregados via JavaScript -->
+                    </tbody>
+                </table>
+                <div id="no-data-message" class="no-data-message" style="display: none;">
+                    <p>Nenhum aluno encontrado.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const alunos = await API.get('/aluno/list');
+        const tableId = 'tabela-alunos'; // ID da sua tabela
+        Table.clearBody(tableId);
+
+        if (alunos.length === 0) {
+            UI.showMessage('Nenhum aluno encontrado.', 'info');
+            return;
+        }
+
+        alunos.forEach(aluno => {
+            const row = Table.createRow(aluno, [
+                'matricula',
+                'nomeCompleto',
+                'idade',
+                'sexo',
+                { field: 'dataMatricula', format: Format.date }
+            ]);
+            Table.addRow(tableId, row);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar alunos:', error);
+        UI.showMessage('Erro ao carregar alunos.', 'error');
+    }
+});
+
+        async function loadAlunos() {
+            const searchTerm = document.getElementById("buscar-aluno").value.trim();
+            const url = searchTerm ? `/api/aluno/search?nome=${encodeURIComponent(searchTerm)}` : "/api/aluno";
+
+            try {
+                const alunos = await API.get(url);
+                renderTabelaAlunos(alunos);
+            } catch (error) {
+                console.error("Erro ao carregar alunos:", error);
+                UI.showMessage("Não foi possível carregar a lista de alunos.", "error");
+                renderTabelaAlunos([]); // Limpa a tabela em caso de erro
+            }
+        }
+
+        function renderTabelaAlunos(alunos) {
+            const tbody = document.getElementById("tbody-alunos");
+            const noDataMessage = document.getElementById("no-data-message");
+            tbody.innerHTML = "";
+
+            if (!alunos || alunos.length === 0) {
+                noDataMessage.style.display = "block";
+                return;
+            }
+
+            noDataMessage.style.display = "none";
+
+            alunos.forEach(aluno => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${aluno.matricula}</td>
+                    <td>${aluno.nome} ${aluno.sobrenome}</td>
+                    <td>${aluno.idade}</td>
+                    <td>${formatarSexo(aluno.sexo)}</td>
+                    <td>${new Date(aluno.data_matricula).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-action" onclick="editarAluno(${aluno.id})">Editar</button>
+                        <button class="btn-action btn-danger" onclick="excluirAluno(${aluno.id})">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+
+        function formatarSexo(sexo) {
+            if (sexo === 'M') return 'Masculino';
+            if (sexo === 'F') return 'Feminino';
+            return 'Outro';
+        }
+
+        function editarAluno(id) {
+            window.location.href = `alterar-aluno.html?id=${id}`;
+        }
+
+        async function excluirAluno(id) {
+            if (!confirm("Tem certeza de que deseja excluir este aluno?")) {
+                return;
+            }
+
+            try {
+                await API.delete(`/api/aluno/${id}`);
+                UI.showMessage("Aluno excluído com sucesso!", "success");
+                loadAlunos(); // Recarrega a lista
+            } catch (error) {
+                console.error("Erro ao excluir aluno:", error);
+                UI.showMessage(error.message || "Erro ao excluir aluno.", "error");
+            }
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatórios - Sistema Recriar</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js" defer></script>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <main>
+    <div class="container">
+      <h2>Relatórios do Sistema</h2>
+      
+      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+      
+      <div class="filtros-relatorio">
+        <h3>Filtros</h3>
+        <div class="filtros-grid">
+          <div class="form-group">
+            <label for="turma-filtro">Turma</label>
+            <select id="turma-filtro" name="turma-filtro">
+              <option value="">Todas as turmas</option>
+              <!-- Turmas serão carregadas dinamicamente -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="data-inicio">Data Início (Frequência)</label>
+            <input type="date" id="data-inicio" name="data-inicio">
+          </div>
+          <div class="form-group">
+            <label for="data-fim">Data Fim (Frequência)</label>
+            <input type="date" id="data-fim" name="data-fim">
+          </div>
+        </div>
+        <div class="filtros-acoes">
+          <button type="button" id="limpar-filtros" class="btn-secundario">Limpar Filtros</button>
+          <button type="button" id="aplicar-filtros">Aplicar Filtros</button>
+        </div>
+      </div>
+
+      <div class="relatorios-grid">
+        
+        <div class="relatorio-card">
+          <h3>📊 Relatório de Frequência</h3>
+          <p>Controle de presença dos alunos por período e turma.</p>
+          <button class="btn-relatorio" data-relatorio="frequencia">Gerar Relatório</button>
+        </div>
+
+        <div class="relatorio-card">
+          <h3>📚 Relatório de Alunos por Turma</h3>
+          <p>Lista de alunos de uma turma específica.</p>
+          <button class="btn-relatorio" data-relatorio="alunos-por-turma">Gerar Relatório</button>
+        </div>
+
+      </div>
+
+      <div id="relatorio-preview" style="display: none;">
+        <h3>Preview do Relatório</h3>
+        <div id="relatorio-conteudo"></div>
+        <div class="form-actions">
+          <button type="button" id="exportar-pdf">📄 Exportar PDF</button>
+          <button type="button" id="exportar-excel">📊 Exportar Excel</button>
+          <button type="button" id="fechar-preview" class="btn-secundario">Fechar</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="menu.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!Auth.requireAuth()) return;
+      carregarTurmasParaFiltro();
+      configurarEventosRelatorios();
+      configurarFiltros();
+    });
+
+    async function carregarTurmasParaFiltro() {
+      try {
+        const turmas = await API.get("/turma");
+        const turmaSelect = document.getElementById("turma-filtro");
+        turmaSelect.innerHTML = "<option value=\"\">Todas as turmas</option>";
+        turmas.forEach(turma => {
+          const option = document.createElement("option");
+          option.value = turma.id;
+          option.textContent = turma.nome;
+          turmaSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error("Erro ao carregar turmas para filtro:", error);
+        UI.showMessage("Não foi possível carregar as turmas para os filtros.", "warning");
+      }
+    }
+
+    function configurarEventosRelatorios() {
+      const botoesRelatorio = document.querySelectorAll(".btn-relatorio");
+      botoesRelatorio.forEach(botao => {
+        botao.addEventListener("click", function() {
+          const tipoRelatorio = this.getAttribute("data-relatorio");
+          gerarRelatorio(tipoRelatorio);
+        });
+      });
+
+      document.getElementById("exportar-pdf")?.addEventListener("click", () => exportarRelatorio("pdf"));
+      document.getElementById("exportar-excel")?.addEventListener("click", () => exportarRelatorio("excel"));
+      document.getElementById("fechar-preview")?.addEventListener("click", fecharPreview);
+    }
+
+    function configurarFiltros() {
+      document.getElementById("limpar-filtros")?.addEventListener("click", limparFiltros);
+      document.getElementById("aplicar-filtros")?.addEventListener("click", aplicarFiltros);
+    }
+
+    function coletarFiltros() {
+      return {
+        turma_id: document.getElementById("turma-filtro").value || null,
+        data_inicio: document.getElementById("data-inicio").value || null,
+        data_fim: document.getElementById("data-fim").value || null,
+      };
+    }
+
+    async function gerarRelatorio(tipo) {
+      UI.showMessage("Gerando relatório...", "info");
+      const filtros = coletarFiltros();
+      let url = "";
+      let dadosRelatorio = [];
+
+      try {
+        if (tipo === "frequencia") {
+          if (!filtros.turma_id) {
+            UI.showMessage("Selecione uma turma para o relatório de frequência.", "error");
+            return;
+          }
+          url = `/relatorios/frequencia?turma_id=${filtros.turma_id}`;
+          if (filtros.data_inicio) url += `&data_inicio=${filtros.data_inicio}`;
+          if (filtros.data_fim) url += `&data_fim=${filtros.data_fim}`;
+          dadosRelatorio = await API.get(url);
+          exibirRelatorioFrequencia(dadosRelatorio);
+        } else if (tipo === "alunos-por-turma") {
+          if (!filtros.turma_id) {
+            UI.showMessage("Selecione uma turma para o relatório de alunos por turma.", "error");
+            return;
+          }
+          url = `/relatorios/alunos-por-turma?turma_id=${filtros.turma_id}`;
+          dadosRelatorio = await API.get(url);
+          exibirRelatorioAlunosPorTurma(dadosRelatorio);
+        } else {
+          UI.showMessage("Tipo de relatório desconhecido.", "error");
+          return;
+        }
+        UI.showMessage("Relatório gerado com sucesso!", "success");
+        document.getElementById("relatorio-preview").style.display = "block";
+      } catch (error) {
+        console.error("Erro ao gerar relatório:", error);
+        UI.showMessage(error.message || "Erro ao gerar relatório. Tente novamente.", "error");
+        document.getElementById("relatorio-preview").style.display = "none";
+      }
+    }
+
+    function exibirRelatorioFrequencia(dados) {
+      const conteudo = document.getElementById("relatorio-conteudo");
+      conteudo.innerHTML = "";
+
+      if (!dados || dados.length === 0) {
+        conteudo.innerHTML = "<p>Nenhum dado de frequência encontrado para os filtros selecionados.</p>";
+        return;
+      }
+
+      let html = "<h4>Relatório de Frequência</h4>";
+      html += "<table class=\"table\"><thead><tr><th>Aluno</th><th>Data</th><th>Presente</th></tr></thead><tbody>";
+      dados.forEach(item => {
+        html += `<tr><td>${item.aluno_nome}</td><td>${new Date(item.data_chamada).toLocaleDateString()}</td><td>${item.presente ? 'Sim' : 'Não'}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      conteudo.innerHTML = html;
+    }
+
+    function exibirRelatorioAlunosPorTurma(dados) {
+      const conteudo = document.getElementById("relatorio-conteudo");
+      conteudo.innerHTML = "";
+
+      if (!dados || dados.length === 0) {
+        conteudo.innerHTML = "<p>Nenhum aluno encontrado para a turma selecionada.</p>";
+        return;
+      }
+
+      let html = "<h4>Relatório de Alunos por Turma</h4>";
+      html += "<table class=\"table\"><thead><tr><th>Matrícula</th><th>Nome</th><th>Documento</th></tr></thead><tbody>";
+      dados.forEach(aluno => {
+        html += `<tr><td>${aluno.matricula}</td><td>${aluno.nome} ${aluno.sobrenome}</td><td>${aluno.documento}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      conteudo.innerHTML = html;
+    }
+
+    async function exportarRelatorio(formato) {
+      const filtros = coletarFiltros();
+      let url = `/relatorios/exportar?formato=${formato}`;
+      if (filtros.turma_id) url += `&turma_id=${filtros.turma_id}`;
+      if (filtros.data_inicio) url += `&data_inicio=${filtros.data_inicio}`;
+      if (filtros.data_fim) url += `&data_fim=${filtros.data_fim}`;
+
+      try {
+        UI.showMessage(`Exportando para ${formato.toUpperCase()}...`, "info");
+        // A API de exportação deve retornar um arquivo. O navegador lidará com o download.
+        window.open(API.BASE_URL + url, '_blank');
+        UI.showMessage("Exportação iniciada.", "success");
+      } catch (error) {
+        console.error("Erro ao exportar relatório:", error);
+        UI.showMessage(error.message || "Erro ao exportar relatório.", "error");
+      }
+    }
+
+    function limparFiltros() {
+      document.getElementById("turma-filtro").value = "";
+      document.getElementById("data-inicio").value = "";
+      document.getElementById("data-fim").value = "";
+      fecharPreview();
+    }
+
+    function aplicarFiltros() {
+      // Ao aplicar filtros, o usuário deve clicar em um botão de relatório para gerar
+      UI.showMessage("Filtros aplicados. Selecione um tipo de relatório para gerar.", "info");
+      fecharPreview();
+    }
+
+    function fecharPreview() {
+      document.getElementById("relatorio-preview").style.display = "none";
+      document.getElementById("relatorio-conteudo").innerHTML = "";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alterar Aluno - Sistema Recriar</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js" defer></script>
+</head>
+<body>
+  <div id="menu-container"></div>
+
+  <main>
+    <div class="container">
+      <h2>Alterar Aluno</h2>
+      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+
+      <form id="form-alterar-aluno">
+        <!-- Campos do Aluno -->
+        <div class="form-group">
+          <label for="nome">Nome do Aluno</label>
+          <input type="text" id="nome" name="nome" required>
+          <span id="nome-error" class="error-message"></span>
+        </div>
+        <div class="form-group">
+          <label for="sobrenome">Sobrenome do Aluno</label>
+          <input type="text" id="sobrenome" name="sobrenome" required>
+          <span id="sobrenome-error" class="error-message"></span>
+        </div>
+        <div class="form-group">
+          <label for="documento">Documento de Identidade do Aluno</label>
+          <input type="text" id="documento" name="documento" required>
+          <span id="documento-error" class="error-message"></span>
+        </div>
+        <div class="form-group">
+          <label for="idade">Idade do Aluno</label>
+          <input type="number" id="idade" name="idade" required>
+          <span id="idade-error" class="error-message"></span>
+        </div>
+        <div class="form-group">
+          <label for="sexo">Sexo do Aluno</label>
+          <select id="sexo" name="sexo" required>
+            <option value="">Selecione</option>
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+            <option value="O">Outro</option>
+          </select>
+          <span id="sexo-error" class="error-message"></span>
+        </div>
+
+        <!-- Campos do Responsável -->
+        <div class="form-group">
+          <label for="responsavel_nome">Nome do Responsável</label>
+          <input type="text" id="responsavel_nome" name="responsavel_nome" required>
+          <span id="responsavel_nome-error" class="error-message"></span>
+        </div>
+        <div class="form-group">
+          <label for="responsavel_documento">Documento do Responsável</label>
+          <input type="text" id="responsavel_documento" name="responsavel_documento" required>
+          <span id="responsavel_documento-error" class="error-message"></span>
+        </div>
+        <div class="form-group">
+          <label for="responsavel_email">Email do Responsável</label>
+          <input type="email" id="responsavel_email" name="responsavel_email">
+        </div>
+        <div class="form-group">
+          <label for="responsavel_telefone">Telefone do Responsável</label>
+          <input type="text" id="responsavel_telefone" name="responsavel_telefone" required>
+          <span id="responsavel_telefone-error" class="error-message"></span>
+        </div>
+        <div class="form-group">
+          <label for="responsavel_rua">Rua</label>
+          <input type="text" id="responsavel_rua" name="responsavel_rua">
+        </div>
+        <div class="form-group">
+          <label for="responsavel_numero">Número</label>
+          <input type="text" id="responsavel_numero" name="responsavel_numero">
+        </div>
+        <div class="form-group">
+          <label for="responsavel_bairro">Bairro</label>
+          <input type="text" id="responsavel_bairro" name="responsavel_bairro">
+        </div>
+        <div class="form-group">
+          <label for="responsavel_cidade">Cidade</label>
+          <input type="text" id="responsavel_cidade" name="responsavel_cidade">
+        </div>
+        <div class="form-group">
+          <label for="responsavel_endereco_complemento">Complemento do Endereço</label>
+          <input type="text" id="responsavel_endereco_complemento" name="responsavel_endereco_complemento">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="menu.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!Auth.requireAuth()) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const alunoId = urlParams.get("id");
+
+      if (alunoId) {
+        carregarDadosAluno(alunoId);
+      } else {
+        console.error("ID do aluno não fornecido na URL.");
+        UI.showMessage("ID do aluno não fornecido. Redirecionando para a página de alunos.", "error");
+        setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+      }
+
+      document.getElementById("form-alterar-aluno").addEventListener("submit", async function(e){
+        e.preventDefault();
+        salvarAlteracoesAluno(alunoId);
+      });
+    });
+
+    async function carregarDadosAluno(id) {
+      try {
+        const aluno = await API.get(`/aluno/${id}`);
+        
+        document.getElementById("nome").value = aluno.nome;
+        document.getElementById("sobrenome").value = aluno.sobrenome;
+        document.getElementById("documento").value = aluno.documento;
+        document.getElementById("idade").value = aluno.idade;
+        document.getElementById("sexo").value = aluno.sexo;
+
+        if (aluno.responsavel) {
+          document.getElementById("responsavel_nome").value = aluno.responsavel.nome;
+          document.getElementById("responsavel_documento").value = aluno.responsavel.documento;
+          document.getElementById("responsavel_email").value = aluno.responsavel.email;
+          document.getElementById("responsavel_telefone").value = aluno.responsavel.telefone;
+          document.getElementById("responsavel_rua").value = aluno.responsavel.rua;
+          document.getElementById("responsavel_numero").value = aluno.responsavel.numero;
+          document.getElementById("responsavel_bairro").value = aluno.responsavel.bairro;
+          document.getElementById("responsavel_cidade").value = aluno.responsavel.cidade;
+          document.getElementById("responsavel_endereco_complemento").value = aluno.responsavel.endereco_complemento;
+        }
+
+      } catch (error) {
+        console.error("Erro ao carregar dados do aluno:", error);
+        UI.showMessage("Não foi possível carregar os dados do aluno.", "error");
+        setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+      }
+    }
+
+    async function salvarAlteracoesAluno(id) {
+      UI.clearFormErrors("form-alterar-aluno");
+
+      const nomeAlunoValid = UI.validateRequired("nome", "nome-error");
+      const sobrenomeAlunoValid = UI.validateRequired("sobrenome", "sobrenome-error");
+      const documentoAlunoValid = UI.validateRequired("documento", "documento-error");
+      const idadeAlunoValid = UI.validateRequired("idade", "idade-error");
+      const sexoAlunoValid = UI.validateRequired("sexo", "sexo-error");
+      const nomeResponsavelValid = UI.validateRequired("responsavel_nome", "responsavel_nome-error");
+      const documentoResponsavelValid = UI.validateRequired("responsavel_documento", "responsavel_documento-error");
+      const telefoneResponsavelValid = UI.validateRequired("responsavel_telefone", "responsavel_telefone-error");
+
+      if (!nomeAlunoValid || !sobrenomeAlunoValid || !documentoAlunoValid || !idadeAlunoValid || !sexoAlunoValid || !nomeResponsavelValid || !documentoResponsavelValid || !telefoneResponsavelValid) {
+        UI.showMessage("Por favor, preencha todos os campos obrigatórios.", "error");
+        return;
+      }
+
+      const dadosAlunoAtualizados = {
+        nome: document.getElementById("nome").value.trim(),
+        sobrenome: document.getElementById("sobrenome").value.trim(),
+        documento: document.getElementById("documento").value.trim(),
+        idade: parseInt(document.getElementById("idade").value),
+        sexo: document.getElementById("sexo").value,
+        responsavel: {
+          nome: document.getElementById("responsavel_nome").value.trim(),
+          documento: document.getElementById("responsavel_documento").value.trim(),
+          email: document.getElementById("responsavel_email").value.trim(),
+          telefone: document.getElementById("responsavel_telefone").value.trim(),
+          rua: document.getElementById("responsavel_rua").value.trim(),
+          numero: document.getElementById("responsavel_numero").value.trim(),
+          bairro: document.getElementById("responsavel_bairro").value.trim(),
+          cidade: document.getElementById("responsavel_cidade").value.trim(),
+          endereco_complemento: document.getElementById("responsavel_endereco_complemento").value.trim()
+        }
+      };
+
+      try {
+        await API.put(`/aluno/${id}`, dadosAlunoAtualizados);
+        UI.showMessage("Aluno alterado com sucesso!", "success");
+        setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+      } catch (error) {
+        console.error("Erro ao salvar alterações do aluno:", error);
+        UI.showMessage(error.message || "Erro ao salvar alterações do aluno.", "error");
+      }
+    }
+  </script>
+</body>
+</html>

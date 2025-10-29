@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Professores - Sistema Recriar</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <div id="menu-container"></div>
+
+    <main>
+        <div class="container">
+            <h2>Gestão de Professores</h2>
+            <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+
+            <div class="crud-bar">
+                <input type="search" 
+                       id="buscar-professor" 
+                       placeholder="Buscar por nome..." 
+                       aria-label="Buscar professores">
+                <button type="button" 
+                        id="btn-incluir" 
+                        class="btn-success" 
+                        onclick="window.location.href=\'novo-professor.html\'">
+                    Novo Professor
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="table" id="tabela-professores">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Documento</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-professores">
+                        <!-- Dados carregados via JavaScript -->
+                    </tbody>
+                </table>
+                <div id="no-data-message" class="no-data-message" style="display: none;">
+                    <p>Nenhum professor encontrado.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (!Auth.requireAuth()) return;
+
+            const searchInput = document.getElementById("buscar-professor");
+            searchInput.addEventListener("input", debounce(loadProfessores, 300));
+
+            loadProfessores();
+        });
+
+        async function loadProfessores() {
+            const searchTerm = document.getElementById("buscar-professor").value.trim();
+            const url = searchTerm ? `/api/professor/search?nome=${encodeURIComponent(searchTerm)}` : "/api/professor";
+
+            try {
+                const professores = await API.get(url);
+                renderTabelaProfessores(professores);
+            } catch (error) {
+                console.error("Erro ao carregar professores:", error);
+                UI.showMessage("Não foi possível carregar a lista de professores.", "error");
+                renderTabelaProfessores([]); // Limpa a tabela em caso de erro
+            }
+        }
+
+        function renderTabelaProfessores(professores) {
+            const tbody = document.getElementById("tbody-professores");
+            const noDataMessage = document.getElementById("no-data-message");
+            tbody.innerHTML = "";
+
+            if (!professores || professores.length === 0) {
+                noDataMessage.style.display = "block";
+                return;
+            }
+
+            noDataMessage.style.display = "none";
+
+            professores.forEach(professor => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${professor.id}</td>
+                    <td>${professor.nome}</td>
+                    <td>${professor.email}</td>
+                    <td>${professor.documento}</td>
+                    <td>
+                        <button class="btn-action" onclick="editarProfessor(${professor.id})">Editar</button>
+                        <button class="btn-action btn-danger" onclick="excluirProfessor(${professor.id})">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+
+        function editarProfessor(id) {
+            window.location.href = `alterar-professor.html?id=${id}`;
+        }
+
+        async function excluirProfessor(id) {
+            if (!confirm("Tem certeza de que deseja excluir este professor?")) {
+                return;
+            }
+
+            try {
+                await API.delete(`/api/professor/${id}`);
+                UI.showMessage("Professor excluído com sucesso!", "success");
+                loadProfessores(); // Recarrega a lista
+            } catch (error) {
+                console.error("Erro ao excluir professor:", error);
+                UI.showMessage(error.message || "Erro ao excluir professor.", "error");
+            }
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+    </script>
+</body>
+</html>

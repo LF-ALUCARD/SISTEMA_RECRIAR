@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Turmas - Sistema Recriar</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <div id="menu-container"></div>
+
+    <main>
+        <div class="container">
+            <h2>Gestão de Turmas</h2>
+            <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+
+            <div class="crud-bar">
+                <input type="search" 
+                       id="buscar-turma" 
+                       placeholder="Buscar por nome..." 
+                       aria-label="Buscar turmas">
+                <button type="button" 
+                        id="btn-incluir" 
+                        class="btn-success" 
+                        onclick="window.location.href=\'nova-turma.html\'">
+                    Nova Turma
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="table" id="tabela-turmas">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Descrição</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-turmas">
+                        <!-- Dados carregados via JavaScript -->
+                    </tbody>
+                </table>
+                <div id="no-data-message" class="no-data-message" style="display: none;">
+                    <p>Nenhuma turma encontrada.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (!Auth.requireAuth()) return;
+
+            const searchInput = document.getElementById("buscar-turma");
+            searchInput.addEventListener("input", debounce(loadTurmas, 300));
+
+            loadTurmas();
+        });
+
+        async function loadTurmas() {
+            const searchTerm = document.getElementById("buscar-turma").value.trim();
+            const url = searchTerm ? `/api/turma/search?nome=${encodeURIComponent(searchTerm)}` : "/api/turma";
+
+            try {
+                const turmas = await API.get(url);
+                renderTabelaTurmas(turmas);
+            } catch (error) {
+                console.error("Erro ao carregar turmas:", error);
+                UI.showMessage("Não foi possível carregar a lista de turmas.", "error");
+                renderTabelaTurmas([]); // Limpa a tabela em caso de erro
+            }
+        }
+
+        function renderTabelaTurmas(turmas) {
+            const tbody = document.getElementById("tbody-turmas");
+            const noDataMessage = document.getElementById("no-data-message");
+            tbody.innerHTML = "";
+
+            if (!turmas || turmas.length === 0) {
+                noDataMessage.style.display = "block";
+                return;
+            }
+
+            noDataMessage.style.display = "none";
+
+            turmas.forEach(turma => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${turma.id}</td>
+                    <td>${turma.nome}</td>
+                    <td>${turma.descricao || \'N/A\'}</td>
+                    <td>
+                        <button class="btn-action" onclick="editarTurma(${turma.id})">Editar</button>
+                        <button class="btn-action btn-danger" onclick="excluirTurma(${turma.id})">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+
+        function editarTurma(id) {
+            window.location.href = `alterar-turma.html?id=${id}`;
+        }
+
+        async function excluirTurma(id) {
+            if (!confirm("Tem certeza de que deseja excluir esta turma?")) {
+                return;
+            }
+
+            try {
+                await API.delete(`/api/turma/${id}`);
+                UI.showMessage("Turma excluída com sucesso!", "success");
+                loadTurmas(); // Recarrega a lista
+            } catch (error) {
+                console.error("Erro ao excluir turma:", error);
+                UI.showMessage(error.message || "Erro ao excluir turma.", "error");
+            }
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+    </script>
+</body>
+</html>
