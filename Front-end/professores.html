@@ -23,7 +23,7 @@
                 <button type="button" 
                         id="btn-incluir" 
                         class="btn-success" 
-                        onclick="window.location.href=\'novo-professor.html\'">
+                        onclick="window.location.href='novo-professor.html'">
                     Novo Professor
                 </button>
             </div>
@@ -32,11 +32,8 @@
                 <table class="table" id="tabela-professores">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Nome</th>
                             <th>Email</th>
-                            <th>Documento</th>
-                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-professores">
@@ -62,12 +59,18 @@
         });
 
         async function loadProfessores() {
-            const searchTerm = document.getElementById("buscar-professor").value.trim();
-            const url = searchTerm ? `/api/professor/search?nome=${encodeURIComponent(searchTerm)}` : "/api/professor";
+            const searchTerm = document.getElementById("buscar-professor").value.trim().toLowerCase();
 
             try {
-                const professores = await API.get(url);
-                renderTabelaProfessores(professores);
+                // O API_BASE_URL já inclui '/api', portanto aqui passamos apenas o caminho relativo
+                const professores = await API.get('/professor/list');
+
+                // Caso o endpoint não suporte busca, filtramos localmente pelo nome
+                const resultados = searchTerm
+                    ? (professores || []).filter(p => (p.nome || '').toLowerCase().includes(searchTerm))
+                    : (professores || []);
+
+                renderTabelaProfessores(resultados);
             } catch (error) {
                 console.error("Erro ao carregar professores:", error);
                 UI.showMessage("Não foi possível carregar a lista de professores.", "error");
@@ -88,17 +91,18 @@
             noDataMessage.style.display = "none";
 
             professores.forEach(professor => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${professor.id}</td>
-                    <td>${professor.nome}</td>
-                    <td>${professor.email}</td>
-                    <td>${professor.documento}</td>
-                    <td>
-                        <button class="btn-action" onclick="editarProfessor(${professor.id})">Editar</button>
-                        <button class="btn-action btn-danger" onclick="excluirProfessor(${professor.id})">Excluir</button>
-                    </td>
-                `;
+                const row = document.createElement('tr');
+
+                const nomeCell = document.createElement('td');
+                nomeCell.textContent = professor.nome || '-';
+                row.appendChild(nomeCell);
+
+                const emailCell = document.createElement('td');
+                emailCell.textContent = professor.email || '-';
+                row.appendChild(emailCell);
+
+                // Não renderizar coluna de ações — mostramos apenas nome e email
+                tbody.appendChild(row);
             });
         }
 

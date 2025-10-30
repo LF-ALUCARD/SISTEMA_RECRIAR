@@ -1,10 +1,13 @@
 package recriar.gestao.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import recriar.gestao.entities.Professor;
+import recriar.gestao.entities.DTO.ProfessorListDTO;
 import recriar.gestao.entities.DTO.ProfessorRegisterDTO;
 import recriar.gestao.repositories.ProfessorRepository;
 import recriar.gestao.service.exceptions.BancoDeDadosExceptions;
@@ -59,4 +62,14 @@ public class ProfessorService {
 		}
 	}
 	/*-------------------------------------------------------------------------*/
+	
+	public List<ProfessorListDTO> findAll() {
+		
+		List<Professor> lista = repositor.findAll();
+		List<ProfessorListDTO> listagem = lista.stream().map(x -> new ProfessorListDTO(x)).toList();
+		
+		return listagem;
+	}
+	/*-------------------------------------------------------------------------*/
+	
 }

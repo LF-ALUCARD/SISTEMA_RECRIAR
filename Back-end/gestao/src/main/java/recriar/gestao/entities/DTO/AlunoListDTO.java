@@ -14,7 +14,7 @@ public class AlunoListDTO implements Serializable {
 	private String nomeCompleto;
 	private Integer idade;
 	private Sexo sexo;
-	private LocalDate dataMatricul;
+	private LocalDate dataMatricula;
 
 	public AlunoListDTO() {
 	}
@@ -24,7 +24,7 @@ public class AlunoListDTO implements Serializable {
 		nomeCompleto = entidade.getNome() + " " + entidade.getSobrenome();
 		idade = entidade.getIdade();
 		sexo = entidade.getSexo();
-		dataMatricul = entidade.getData_matricula();
+		dataMatricula = entidade.getData_matricula();
 	}
 
 	public String getMatricula() {
@@ -59,12 +59,12 @@ public class AlunoListDTO implements Serializable {
 		this.sexo = sexo;
 	}
 
-	public LocalDate getDataMatricul() {
-		return dataMatricul;
+	public LocalDate getDataMatricula() {
+		return dataMatricula;
 	}
 
-	public void setDataMatricul(LocalDate dataMatricul) {
-		this.dataMatricul = dataMatricul;
+	public void setDataMatricula(LocalDate dataMatricul) {
+		this.dataMatricula = dataMatricul;
 	}
 
 }

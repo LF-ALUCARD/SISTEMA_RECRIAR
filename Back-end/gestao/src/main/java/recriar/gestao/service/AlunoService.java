@@ -75,6 +75,8 @@ public class AlunoService {
 		if (repositorResponsavel.existsByDocumento(obj.getDocumento())) {
 			throw new CriacaoNegadaException("Documento existemte");
 		}
+		
+		
 
 		Aluno entidade = converterAluno(obj);
 
@@ -84,7 +86,7 @@ public class AlunoService {
 	private Aluno converterAluno(AlunoRegisterResponseDTO dto) {
 
 		Aluno aluno = new Aluno();
-		Responsavel responsavel = repositorResponsavel.getReferenceById(dto.getResponsavel());
+		Responsavel responsavel = repositorResponsavel.findById(dto.getResponsavel()).orElseThrow(() -> new CriacaoNegadaException("Responsavél não encontrado"));
 
 		aluno.setMatricula(dto.getMatricula());
 		aluno.setNome(dto.getNome());

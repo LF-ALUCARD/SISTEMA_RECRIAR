@@ -17,26 +17,42 @@
       <div id="feedback-message" class="feedback-message" style="display:none;"></div>
 
       <form id="form-novo-professor" action="#" method="post">
-        <div class="form-group">
-          <label for="nome">Nome</label>
-          <input type="text" id="nome" name="nome" required>
-          <span id="nome-error" class="error-message"></span>
+        <!-- Abas: Dados / Senha -->
+        <div class="tabs">
+          <button type="button" class="tab-button active" data-target="#tab-dados">Dados</button>
+          <button type="button" class="tab-button" data-target="#tab-senha">Senha</button>
         </div>
 
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" required>
-          <span id="email-error" class="error-message"></span>
+        <div id="tab-dados" class="tab-panel">
+          <div class="form-group">
+            <label for="nome">Nome</label>
+            <input type="text" id="nome" name="nome" required>
+            <span id="nome-error" class="error-message"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            <span id="email-error" class="error-message"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="documento">Documento</label>
+            <input type="text" id="documento" name="documento" required>
+            <span id="documento-error" class="error-message"></span>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="documento">Documento</label>
-          <input type="text" id="documento" name="documento" required>
-          <span id="documento-error" class="error-message"></span>
+        <div id="tab-senha" class="tab-panel" style="display:none;">
+          <div class="form-group">
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" required minlength="6">
+            <span id="password-error" class="error-message"></span>
+          </div>
         </div>
 
         <div class="form-actions">
-          <button type="submit">Salvar</button>
+          <button type="submit" id="btn-salvar">Salvar</button>
         </div>
       </form>
     </div>
@@ -48,16 +64,36 @@
       const form = document.getElementById("form-novo-professor");
       if (!form) return;
 
+      // Tabs handler
+      function setupTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            // ativar botão
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // mostrar painel correspondente
+            const target = btn.getAttribute('data-target');
+            document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+            const panel = document.querySelector(target);
+            if (panel) panel.style.display = 'block';
+          });
+        });
+      }
+
+      setupTabs();
+
       form.addEventListener("submit", async function(e){
         e.preventDefault();
-
         UI.clearFormErrors("form-novo-professor");
 
         const nomeValid = UI.validateRequired("nome", "nome-error");
-        const emailValid = UI.validateRequired("email", "email-error");
+        const emailValid = UI.validateRequired("email", "email-error") && UI.validateEmail("email", "email-error");
         const documentoValid = UI.validateRequired("documento", "documento-error");
+        const passwordValid = UI.validateRequired("password", "password-error");
 
-        if (!nomeValid || !emailValid || !documentoValid) {
+        if (!nomeValid || !emailValid || !documentoValid || !passwordValid) {
           UI.showMessage("Por favor, preencha todos os campos obrigatórios.", "error");
           return;
         }
@@ -65,17 +101,26 @@
         const novoProfessor = {
           nome: document.getElementById("nome").value.trim(),
           email: document.getElementById("email").value.trim(),
-          documento: document.getElementById("documento").value.trim()
+          documento: document.getElementById("documento").value.trim(),
+          password: document.getElementById("password").value
         };
 
         try {
-          const response = await API.post("/professor", novoProfessor);
-          console.log("Professor cadastrado com sucesso:", response);
-          UI.showMessage("Professor cadastrado com sucesso!", "success");
-          form.reset();
+          UI.showButtonLoading('btn-salvar', 'Salvando...');
+
+          // Envia para o endpoint de registro (API.post já adiciona Authorization: Bearer <token>)
+          const response = await API.post('/professor/register', novoProfessor);
+          console.log('Professor registrado com sucesso:', response);
+          UI.showMessage('Professor registrado com sucesso!', 'success');
+          // Redirecionar de volta para a lista após pequena espera
+          setTimeout(() => {
+            window.location.href = 'professores.html';
+          }, 900);
         } catch (error) {
-          console.error("Erro ao cadastrar professor:", error);
-          UI.showMessage(error.message || "Erro ao cadastrar professor. Tente novamente.", "error");
+          console.error('Erro ao registrar professor:', error);
+          UI.showMessage(error.message || 'Erro ao cadastrar professor. Tente novamente.', 'error');
+        } finally {
+          UI.hideButtonLoading('btn-salvar');
         }
       });
     });
