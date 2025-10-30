@@ -23,13 +23,13 @@
                 <button type="button" 
                         id="btn-novo-admin" 
                         class="btn-success" 
-                        onclick="window.location.href=\'novo-usuario.html?type=admin\'">
+                        onclick="window.location.href='novo-usuario.html?type=admin'">
                     Novo Admin
                 </button>
                 <button type="button" 
                         id="btn-novo-professor" 
                         class="btn-success" 
-                        onclick="window.location.href=\'novo-usuario.html?type=professor\'">
+                        onclick="window.location.href='novo-usuario.html?type=professor'">
                     Novo Professor
                 </button>
             </div>
@@ -38,10 +38,8 @@
                 <table class="table" id="tabela-usuarios">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Email</th>
+                            <th>Nome</th>
                             <th>Tipo</th>
-                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-usuarios">
@@ -60,6 +58,33 @@
         document.addEventListener("DOMContentLoaded", function() {
             if (!Auth.requireAuth()) return;
 
+            // Verificar tipo do usuário (role) e restringir acesso a esta página
+            const userInfo = Auth.getUserInfo();
+            const userType = userInfo && userInfo.userType ? userInfo.userType.toUpperCase() : null;
+
+            if (userType !== 'ADMIN') {
+                UI.showMessage('Acesso negado: página disponível somente para administradores.', 'error');
+
+                // Esconder ações sensíveis e impedir carregamento da lista
+                const searchInput = document.getElementById('buscar-usuario');
+                if (searchInput) searchInput.style.display = 'none';
+                const btnNovoAdmin = document.getElementById('btn-novo-admin');
+                const btnNovoProfessor = document.getElementById('btn-novo-professor');
+                if (btnNovoAdmin) btnNovoAdmin.style.display = 'none';
+                if (btnNovoProfessor) btnNovoProfessor.style.display = 'none';
+
+                // Esconder tabela e exibir mensagem
+                const tabela = document.querySelector('.table-container');
+                if (tabela) tabela.style.display = 'none';
+
+                // Opcional: redirecionar o usuário após um curto período
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1200);
+
+                return;
+            }
+
             const searchInput = document.getElementById("buscar-usuario");
             searchInput.addEventListener("input", debounce(loadUsuarios, 300));
 
@@ -67,33 +92,24 @@
         });
 
         async function loadUsuarios() {
-            const searchTerm = document.getElementById("buscar-usuario").value.trim();
-            
+            const searchTerm = document.getElementById("buscar-usuario").value.trim().toLowerCase();
+
             try {
-                // Para simplificar, vamos listar todos os professores e admins como "usuários" aqui.
-                // Em um cenário real, você pode ter um endpoint /api/users que lista todos os usuários independentemente do tipo.
-                const professores = await API.get(`/professor`); // Assumindo que /api/professor lista todos os professores
-                // const admins = await API.get(`/admin`); // Se houver um endpoint para listar admins
+                // Chama o endpoint único de usuários
+                const usuarios = await API.get('/user/list');
 
-                let allUsers = [];
-                if (professores) {
-                    allUsers = allUsers.concat(professores.map(p => ({ id: p.id, email: p.email, tipo: "PROFESSOR" })));
-                }
-                // if (admins) {
-                //     allUsers = allUsers.concat(admins.map(a => ({ id: a.id, email: a.email, tipo: "ADMIN" })));
-                // }
+                const lista = usuarios || [];
 
-                // Filtrar por termo de busca se houver
-                const filteredUsers = allUsers.filter(user => 
-                    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    user.tipo.toLowerCase().includes(searchTerm.toLowerCase()) // Ou outros campos relevantes
-                );
+                // Filtrar localmente por nome ou tipo
+                const filtered = searchTerm
+                    ? lista.filter(u => (u.nome || '').toLowerCase().includes(searchTerm) || (u.tipo || '').toLowerCase().includes(searchTerm))
+                    : lista;
 
-                renderTabelaUsuarios(filteredUsers);
+                renderTabelaUsuarios(filtered);
             } catch (error) {
                 console.error("Erro ao carregar usuários:", error);
                 UI.showMessage("Não foi possível carregar a lista de usuários.", "error");
-                renderTabelaUsuarios([]); // Limpa a tabela em caso de erro
+                renderTabelaUsuarios([]);
             }
         }
 
@@ -110,16 +126,17 @@
             noDataMessage.style.display = "none";
 
             usuarios.forEach(usuario => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${usuario.id}</td>
-                    <td>${usuario.email}</td>
-                    <td>${usuario.tipo}</td>
-                    <td>
-                        <button class="btn-action" onclick="editarUsuario(${usuario.id}, \'${usuario.tipo}\')">Editar</button>
-                        <button class="btn-action btn-danger" onclick="excluirUsuario(${usuario.id}, \'${usuario.tipo}\')">Excluir</button>
-                    </td>
-                `;
+                const row = document.createElement('tr');
+
+                const nomeCell = document.createElement('td');
+                nomeCell.textContent = usuario.nome || '-';
+                row.appendChild(nomeCell);
+
+                const tipoCell = document.createElement('td');
+                tipoCell.textContent = usuario.tipo || '-';
+                row.appendChild(tipoCell);
+
+                tbody.appendChild(row);
             });
         }
 

@@ -1,5 +1,7 @@
 package recriar.gestao.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import recriar.gestao.entities.Usuario;
 import recriar.gestao.entities.DTO.UsuarioInfoDTO;
+import recriar.gestao.entities.DTO.UsuarioListDTO;
 import recriar.gestao.entities.DTO.UsuarioPasswordDTO;
 import recriar.gestao.entities.DTO.UsuarioProfileDTO;
 import recriar.gestao.service.UsuarioService;
@@ -28,6 +31,14 @@ public class UsuarioController {
 	public ResponseEntity<UsuarioInfoDTO> accont_info(@PathVariable Long id){
 		UsuarioInfoDTO entidade = service.profile(id);
 		return ResponseEntity.ok().body(entidade);
+	}
+	
+	@GetMapping("list")
+	public ResponseEntity<List<UsuarioListDTO>> findAll(){
+		
+		List<UsuarioListDTO> list = service.findAll();
+		
+		return ResponseEntity.ok().body(list);
 	}
 	
 	@PostMapping(value = "/profile/{id}")

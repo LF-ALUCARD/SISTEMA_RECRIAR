@@ -1,5 +1,6 @@
 package recriar.gestao.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import recriar.gestao.entities.Responsavel;
 import recriar.gestao.entities.DTO.AlunoListDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterResponseDTO;
+import recriar.gestao.entities.DTO.ResponsavelListDTO;
 import recriar.gestao.entities.enums.Sexo;
 import recriar.gestao.repositories.AlunoRepository;
 import recriar.gestao.repositories.ResponsavelRepository;
@@ -33,6 +35,14 @@ public class AlunoService {
 
 		Responsavel responsavel = converterResponsavel(obj);
 		Aluno entidade = converterAluno(obj, responsavel);
+		
+		entidade.setMatricula("TEMP"); 
+
+	    entidade = repositorAluno.save(entidade); 
+
+	    String ano = String.valueOf(LocalDate.now().getYear());
+	    String matricula = ano + "A" + String.format("%03d", entidade.getId());
+	    entidade.setMatricula(matricula);
 
 		return repositorAluno.save(entidade);
 	}
@@ -57,7 +67,6 @@ public class AlunoService {
 
 		Aluno aluno = new Aluno();
 
-		aluno.setMatricula(dto.getMatricula());
 		aluno.setNome(dto.getNome());
 		aluno.setSobrenome(dto.getSobrenome());
 		aluno.setDocumento(dto.getDocumento());
@@ -75,12 +84,18 @@ public class AlunoService {
 		if (repositorResponsavel.existsByDocumento(obj.getDocumento())) {
 			throw new CriacaoNegadaException("Documento existemte");
 		}
-		
-		
 
-		Aluno entidade = converterAluno(obj);
+	    Aluno entidade = converterAluno(obj);
+	    entidade.setMatricula("TEMP"); 
 
-		return repositorAluno.save(entidade);
+	    entidade = repositorAluno.save(entidade); 
+
+	    String ano = String.valueOf(LocalDate.now().getYear());
+	    String matricula = ano + "A" + String.format("%03d", entidade.getId());
+	    entidade.setMatricula(matricula);
+
+	    return repositorAluno.save(entidade); 
+
 	}
 
 	private Aluno converterAluno(AlunoRegisterResponseDTO dto) {
@@ -88,7 +103,6 @@ public class AlunoService {
 		Aluno aluno = new Aluno();
 		Responsavel responsavel = repositorResponsavel.findById(dto.getResponsavel()).orElseThrow(() -> new CriacaoNegadaException("Responsavél não encontrado"));
 
-		aluno.setMatricula(dto.getMatricula());
 		aluno.setNome(dto.getNome());
 		aluno.setSobrenome(dto.getSobrenome());
 		aluno.setDocumento(dto.getDocumento());
@@ -108,4 +122,14 @@ public class AlunoService {
 		
 		return listagem;
 	}
+	/*-------------------------------------------------------------------------*/
+	
+	public List<ResponsavelListDTO> findAllResponsavel(){
+		
+		List<Responsavel> lista = repositorResponsavel.findAll();
+		List<ResponsavelListDTO> listagem = lista.stream().map(x -> new ResponsavelListDTO(x)).toList();
+		
+		return listagem;
+	}
+	
 }

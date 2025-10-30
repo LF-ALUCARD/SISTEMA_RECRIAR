@@ -75,10 +75,40 @@ function initializeLayout() {
   const container = document.getElementById('menu-container');
   if (container) {
     container.innerHTML = layoutHTML;
-    
+
+    // Aplicar restrições de visibilidade do menu baseado no tipo de usuário
+    try {
+      const userInfo = window.Auth ? Auth.getUserInfo() : null;
+      const userType = (userInfo && (userInfo.userType || userInfo.type)) || sessionStorage.getItem('user_type') || 'PROFESSOR';
+
+      // Mapeamento de permissões por página (padrão é ADMIN/PROFESSOR)
+      const pageRoles = {
+        menu: ['ADMIN', 'PROFESSOR'],
+        alunos: ['ADMIN'],
+        professores: ['ADMIN'],
+        turmas: ['ADMIN', 'PROFESSOR'],
+        aulas: ['ADMIN', 'PROFESSOR'],
+        relatorios: ['ADMIN', 'PROFESSOR'],
+        admin: ['ADMIN']
+      };
+
+      // Remover links que o usuário não tem permissão para ver
+      const links = container.querySelectorAll('.menu-lateral a[data-page]');
+      links.forEach(link => {
+        const page = link.getAttribute('data-page');
+        const allowed = pageRoles[page] || ['ADMIN', 'PROFESSOR'];
+        if (!allowed.includes(userType)) {
+          const li = link.closest('li');
+          if (li) li.remove();
+        }
+      });
+    } catch (err) {
+      console.error('Erro ao aplicar restrições de menu:', err);
+    }
+
     // Atualizar saudação do usuário
     updateUserGreeting();
-    
+
     // Configurar eventos
     setupMenuEvents();
   }

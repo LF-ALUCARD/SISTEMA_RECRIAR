@@ -1,5 +1,7 @@
 package recriar.gestao.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,6 +12,7 @@ import recriar.gestao.entities.Usuario;
 import recriar.gestao.entities.DTO.AuthResponseDTO;
 import recriar.gestao.entities.DTO.ProfessorRegisterDTO;
 import recriar.gestao.entities.DTO.UsuarioInfoDTO;
+import recriar.gestao.entities.DTO.UsuarioListDTO;
 import recriar.gestao.entities.DTO.UsuarioLoginDTO;
 import recriar.gestao.entities.DTO.UsuarioPasswordDTO;
 import recriar.gestao.entities.DTO.UsuarioProfileDTO;
@@ -172,5 +175,14 @@ public class UsuarioService {
 		catch (DataIntegrityViolationException e) {
 			throw new BancoDeDadosExceptions(e.getMessage());
 		}
+	}
+	/* ----------------------------------------------------------------------------------------------*/
+	
+	public List<UsuarioListDTO> findAll() {
+		
+		List<Usuario> lista = repositor.findAll();
+		List<UsuarioListDTO> listagem = lista.stream().map(x -> new UsuarioListDTO(x)).toList();
+		
+		return listagem;
 	}
 }

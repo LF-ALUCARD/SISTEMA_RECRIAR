@@ -16,6 +16,7 @@ import recriar.gestao.entities.Aluno;
 import recriar.gestao.entities.DTO.AlunoListDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterResponseDTO;
+import recriar.gestao.entities.DTO.ResponsavelListDTO;
 import recriar.gestao.service.AlunoService;
 
 @RestController
@@ -49,6 +50,14 @@ public class AlunoController {
 	public ResponseEntity<List<AlunoListDTO>> findAll(){
 		
 		List<AlunoListDTO> lista = service.findAll();
+		
+		return ResponseEntity.ok().body(lista);
+	}
+	
+	@GetMapping("list_responsavel")
+	public ResponseEntity<List<ResponsavelListDTO>> findAllResponsavel(){
+		
+		List<ResponsavelListDTO> lista = service.findAllResponsavel();
 		
 		return ResponseEntity.ok().body(lista);
 	}

@@ -105,7 +105,7 @@ body {
 
 .menu-lateral a:focus {
   outline: 2px solid #3498db;
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 .menu-lateral a.active {
@@ -470,6 +470,9 @@ body.login-page {
   .login-page .container {
     box-shadow: none;
   }
+
+  /* Ajuste responsivo para radio-box */
+  .radio-col { flex: 1 1 100% !important; }
 }
 
 @media (max-width: 480px) {
@@ -498,6 +501,7 @@ body.login-page {
 .mt-2 { margin-top: 1rem; }
 .mb-1 { margin-bottom: 0.5rem; }
 .mb-2 { margin-bottom: 1rem; }
+
 
 /* ----- Estados de Loading ----- */
 .loading {
@@ -876,3 +880,94 @@ a:focus {
   vertical-align: middle;
 }
 
+/* ----- Estilos para grupos de radio customizados (radio-box) ----- */
+
+.radio-group {
+  display: flex;
+  gap: 1rem; /* Espaçamento entre as caixas */
+  align-items: stretch; /* Garante que as caixas tenham a mesma altura */
+  flex-wrap: wrap; 
+  margin-top: 0.5rem;
+}
+
+.radio-col {
+  flex: 1 1 50%; /* Divide em duas colunas */
+  box-sizing: border-box;
+  min-width: 250px; /* Garante que não fique muito estreito em telas médias */
+}
+
+/* Remover contorno azul padrão ao clicar/selecionar a opção, mantendo foco acessível via keyboard (:focus-visible) */
+.radio-option input[type="radio"]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.radio-option:focus-within {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Para usuários que navegam por teclado, mostrar um foco mais sutil */
+.radio-option input[type="radio"]:focus-visible {
+  outline-offset: 2px;
+}
+
+.radio-option {
+  display: flex; 
+  align-items: center; /* Alinhamento vertical centralizado */
+  justify-content: space-between; /* Texto à esquerda, rádio à direita */
+  gap: 0.5rem; 
+  padding: 1rem; 
+  border-radius: 8px;
+  background: #ffffff;
+  border: 2px solid #e6e9ec; /* Borda mais grossa para visualização de "caixa" */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #2c3e50;
+  font-weight: 500;
+  width: 100%; 
+  box-sizing: border-box;
+  height: 100%; /* Garante que as caixas tenham a mesma altura */
+}
+
+.radio-option:hover {
+  border-color: #3498db; /* Cor de hover mais visível */
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+  transform: translateY(-1px);
+}
+
+.radio-option.active {
+  border-color: #3498db; /* Borda azul para o item selecionado */
+  background: #eaf6ff; /* Fundo azul claro para o item selecionado */
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+}
+
+.radio-option input[type="radio"] {
+  /* Esconde o rádio nativo e usa o estilo da label como caixa */
+  /* Remove o estilo de input padrão para usar um estilo customizado se necessário, mas vamos manter o input visível e alinhado */
+  width: 18px; 
+  height: 18px;
+  margin: 0; /* Remove margem extra */
+  flex-shrink: 0; 
+  /* Garante que o input de rádio fique perfeitamente alinhado no centro vertical */
+  align-self: center; 
+}
+
+.radio-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.3; 
+  font-size: 1rem; /* Tamanho de fonte padrão */
+  font-weight: 600; /* Deixa o texto mais em destaque */
+}
+
+/* Se for necessário esconder o input de rádio para fazer um estilo totalmente customizado, usaríamos:
+.radio-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+e estilizaríamos um elemento pseudo (como ::before ou ::after) no .radio-option ou .radio-text.
+Mas para manter a simplicidade e compatibilidade, vamos manter o input visível e alinhado.
+*/

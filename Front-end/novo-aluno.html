@@ -16,7 +16,36 @@
       
       <div id="feedback-message" class="feedback-message" style="display:none;"></div>
       
-      <form id="form-novo-aluno" action="#" method="post">
+  <form id="form-novo-aluno" action="#" method="post">
+        <!-- Escolha do fluxo: novo responsável ou responsável existente -->
+        <div class="form-group">
+          <label>Fluxo de cadastro</label>
+          <div class="radio-group" role="radiogroup" aria-label="Fluxo de cadastro">
+            <div class="radio-col">
+              <label class="radio-option">
+                <div class="radio-text">Cadastrar aluno + novo responsável</div>
+                <input type="radio" name="fluxo_responsavel" value="novo" checked>
+              </label>
+            </div>
+
+            <div class="radio-col">
+              <label class="radio-option">
+                <div class="radio-text">Responsável existente</div>
+                <input type="radio" name="fluxo_responsavel" value="existente">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Select de responsáveis existentes (preenchido via JS) -->
+        <div class="form-group" id="group-responsavel-existente" style="display:none;">
+          <label for="responsavel_select">Selecione o Responsável</label>
+          <select id="responsavel_select">
+            <option value="">Carregando...</option>
+          </select>
+          <span id="responsavel_select-error" class="error-message"></span>
+        </div>
+
         <!-- Campos do Aluno -->
         <div class="form-group">
           <label for="nome">Nome do Aluno</label>
@@ -42,57 +71,55 @@
           <label for="sexo">Sexo do Aluno</label>
           <select id="sexo" name="sexo" required>
             <option value="">Selecione</option>
-            <option value="M">Masculino</option>
-            <option value="F">Feminino</option>
-            <option value="O">Outro</option>
+            <option value="1">Masculino</option>
+            <option value="2">Feminino</option>
           </select>
           <span id="sexo-error" class="error-message"></span>
         </div>
         <!-- data_matricula será preenchida automaticamente -->
 
-        <!-- Campos do Responsável -->
-        <div class="form-group">
-          <label for="responsavel_nome">Nome do Responsável</label>
-          <input type="text" id="responsavel_nome" name="responsavel_nome" required>
-          <span id="responsavel_nome-error" class="error-message"></span>
-        </div>
-        <div class="form-group">
-          <label for="responsavel_documento">Documento do Responsável</label>
-          <input type="text" id="responsavel_documento" name="responsavel_documento" required>
-          <span id="responsavel_documento-error" class="error-message"></span>
-        </div>
-        <div class="form-group">
-          <label for="responsavel_email">Email do Responsável</label>
-          <input type="email" id="responsavel_email" name="responsavel_email">
-        </div>
-        <div class="form-group">
-          <label for="responsavel_telefone">Telefone do Responsável</label>
-          <input type="text" id="responsavel_telefone" name="responsavel_telefone" required>
-          <span id="responsavel_telefone-error" class="error-message"></span>
-        </div>
-        <div class="form-group">
-          <label for="responsavel_rua">Rua</label>
-          <input type="text" id="responsavel_rua" name="responsavel_rua">
-        </div>
-        <div class="form-group">
-          <label for="responsavel_numero">Número</label>
-          <input type="text" id="responsavel_numero" name="responsavel_numero">
-        </div>
-        <div class="form-group">
-          <label for="responsavel_bairro">Bairro</label>
-          <input type="text" id="responsavel_bairro" name="responsavel_bairro">
-        </div>
-        <div class="form-group">
-          <label for="responsavel_cidade">Cidade</label>
-          <input type="text" id="responsavel_cidade" name="responsavel_cidade">
-        </div>
-        <div class="form-group">
-          <label for="responsavel_endereco_complemento">Complemento do Endereço</label>
-          <input type="text" id="responsavel_endereco_complemento" name="responsavel_endereco_complemento">
+        <!-- Campos do Responsável (quando for novo) -->
+        <div id="group-responsavel-novo">
+          <div class="form-group">
+            <label for="responsavel_nome">Nome do Responsável</label>
+            <input type="text" id="responsavel_nome" name="responsavel_nome">
+            <span id="responsavel_nome-error" class="error-message"></span>
+          </div>
+          <div class="form-group">
+            <label for="responsavel_documento">Documento do Responsável</label>
+            <input type="text" id="responsavel_documento" name="responsavel_documento">
+            <span id="responsavel_documento-error" class="error-message"></span>
+          </div>
+          <div class="form-group">
+            <label for="responsavel_email">Email do Responsável</label>
+            <input type="email" id="responsavel_email" name="responsavel_email">
+            <span id="responsavel_email-error" class="error-message"></span>
+          </div>
+          <div class="form-group">
+            <label for="responsavel_telefone">Telefone do Responsável</label>
+            <input type="text" id="responsavel_telefone" name="responsavel_telefone">
+            <span id="responsavel_telefone-error" class="error-message"></span>
+          </div>
+          <div class="form-group">
+            <label for="responsavel_rua">Rua</label>
+            <input type="text" id="responsavel_rua" name="responsavel_rua">
+          </div>
+          <div class="form-group">
+            <label for="responsavel_numero">Número</label>
+            <input type="text" id="responsavel_numero" name="responsavel_numero">
+          </div>
+          <div class="form-group">
+            <label for="responsavel_bairro">Bairro</label>
+            <input type="text" id="responsavel_bairro" name="responsavel_bairro">
+          </div>
+          <div class="form-group">
+            <label for="responsavel_cidade">Cidade</label>
+            <input type="text" id="responsavel_cidade" name="responsavel_cidade">
+          </div>
         </div>
 
         <div class="form-actions">
-          <button type="submit">Salvar</button>
+          <button type="submit" id="btn-salvar">Salvar</button>
         </div>
       </form>
     </div>
@@ -107,65 +134,153 @@
       const form = document.getElementById("form-novo-aluno");
       if (!form) return;
 
+      // Função para carregar lista de responsáveis existentes
+      async function carregarResponsaveis() {
+        const select = document.getElementById('responsavel_select');
+        if (!select) return;
+        try {
+          const lista = await API.get('/aluno/list_responsavel');
+          // Limpar opções
+          select.innerHTML = '<option value="">Selecione um responsável</option>';
+          (lista || []).forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.id;
+            opt.textContent = `${r.nome} - ${r.documento || ''}`;
+            select.appendChild(opt);
+          });
+        } catch (err) {
+          console.error('Erro ao carregar responsáveis:', err);
+          select.innerHTML = '<option value="">Erro ao carregar</option>';
+        }
+      }
+
+      // Controla exibição dos grupos conforme fluxo
+      function setupFluxoHandler() {
+        const radios = Array.from(document.getElementsByName('fluxo_responsavel'));
+        const groupExistente = document.getElementById('group-responsavel-existente');
+        const groupNovo = document.getElementById('group-responsavel-novo');
+
+        radios.forEach(r => {
+          const label = r.closest('.radio-option');
+
+          const applyState = () => {
+            // marcar label ativo
+            if (label) {
+              if (r.checked) label.classList.add('active'); else label.classList.remove('active');
+            }
+
+            // controlar exibição dos grupos
+            if (r.checked && r.value === 'existente') {
+              groupExistente.style.display = 'block';
+              groupNovo.style.display = 'none';
+            } else if (r.checked && r.value === 'novo') {
+              groupExistente.style.display = 'none';
+              groupNovo.style.display = 'block';
+            }
+          };
+
+          r.addEventListener('change', applyState);
+          // estado inicial
+          applyState();
+        });
+      }
+
+      // Inicializar lista e handler
+      carregarResponsaveis();
+      setupFluxoHandler();
+
       form.addEventListener("submit", async function(e){
         e.preventDefault();
 
         // Limpar mensagens de erro anteriores
         UI.clearFormErrors("form-novo-aluno");
 
-        // Validar campos obrigatórios
+        // Validar campos obrigatórios do aluno
         const nomeAlunoValid = UI.validateRequired("nome", "nome-error");
         const sobrenomeAlunoValid = UI.validateRequired("sobrenome", "sobrenome-error");
         const documentoAlunoValid = UI.validateRequired("documento", "documento-error");
         const idadeAlunoValid = UI.validateRequired("idade", "idade-error");
         const sexoAlunoValid = UI.validateRequired("sexo", "sexo-error");
-        const nomeResponsavelValid = UI.validateRequired("responsavel_nome", "responsavel_nome-error");
-        const documentoResponsavelValid = UI.validateRequired("responsavel_documento", "responsavel_documento-error");
-        const telefoneResponsavelValid = UI.validateRequired("responsavel_telefone", "responsavel_telefone-error");
 
-        if (!nomeAlunoValid || !sobrenomeAlunoValid || !documentoAlunoValid || !idadeAlunoValid || !sexoAlunoValid || !nomeResponsavelValid || !documentoResponsavelValid || !telefoneResponsavelValid) {
-          UI.showMessage("Por favor, preencha todos os campos obrigatórios.", "error");
+        if (!nomeAlunoValid || !sobrenomeAlunoValid || !documentoAlunoValid || !idadeAlunoValid || !sexoAlunoValid) {
+          UI.showMessage("Por favor, preencha todos os campos obrigatórios do aluno.", "error");
           return;
         }
 
-        const novoAluno = {
+        // Determinar fluxo
+        const fluxo = document.querySelector('input[name="fluxo_responsavel"]:checked').value;
+
+        // Montar dados comuns do aluno
+        const alunoPayloadBase = {
+          matricula: document.getElementById('matricula') ? document.getElementById('matricula').value.trim() : undefined,
           nome: document.getElementById("nome").value.trim(),
           sobrenome: document.getElementById("sobrenome").value.trim(),
           documento: document.getElementById("documento").value.trim(),
-          idade: parseInt(document.getElementById("idade").value),
-          sexo: document.getElementById("sexo").value,
-          data_matricula: new Date().toISOString().split('T')[0], // Data atual
-          responsavel: {
-            nome: document.getElementById("responsavel_nome").value.trim(),
-            documento: document.getElementById("responsavel_documento").value.trim(),
-            email: document.getElementById("responsavel_email").value.trim(),
-            telefone: document.getElementById("responsavel_telefone").value.trim(),
-            rua: document.getElementById("responsavel_rua").value.trim(),
-            numero: document.getElementById("responsavel_numero").value.trim(),
-            bairro: document.getElementById("responsavel_bairro").value.trim(),
-            cidade: document.getElementById("responsavel_cidade").value.trim(),
-            endereco_complemento: document.getElementById("responsavel_endereco_complemento").value.trim()
-          }
+          idade: parseInt(document.getElementById("idade").value, 10),
+          sexo: parseInt(document.getElementById("sexo").value, 10) || document.getElementById("sexo").value,
+          data_matricula: new Date().toISOString().split('T')[0]
         };
 
         try {
-          // BACKEND: Substituir esta simulação pela chamada à API de criação de aluno
-          const response = await API.post("/aluno", novoAluno);
+          UI.showButtonLoading('btn-salvar', 'Salvando...');
 
-          console.log("Aluno cadastrado com sucesso:", response);
-          UI.showMessage("Aluno cadastrado com sucesso!", "success");
-          
-          // Limpar formulário após sucesso
+          if (fluxo === 'novo') {
+            // Valida campos do novo responsável
+            const nomeResponsavelValid = UI.validateRequired("responsavel_nome", "responsavel_nome-error");
+            const documentoResponsavelValid = UI.validateRequired("responsavel_documento", "responsavel_documento-error");
+
+            if (!nomeResponsavelValid || !documentoResponsavelValid) {
+              UI.showMessage("Por favor, preencha os campos obrigatórios do responsável.", "error");
+              return;
+            }
+
+            // Construir payload conforme especificado pelo backend
+            const payload = Object.assign({}, alunoPayloadBase, {
+              responsavelNome: document.getElementById("responsavel_nome").value.trim(),
+              responsavelDocumento: document.getElementById("responsavel_documento").value.trim(),
+              responsavelEmail: document.getElementById("responsavel_email").value.trim(),
+              responsavelTelefone: document.getElementById("responsavel_telefone").value.trim(),
+              rua: document.getElementById("responsavel_rua").value.trim(),
+              numero: document.getElementById("responsavel_numero").value.trim(),
+              bairro: document.getElementById("responsavel_bairro").value.trim(),
+              cidade: document.getElementById("responsavel_cidade").value.trim()
+            });
+
+            const response = await API.post('/aluno/register', payload);
+            console.log('Aluno e responsável cadastrados:', response);
+            UI.showMessage('Aluno cadastrado com responsável novo com sucesso!', 'success');
+
+          } else {
+            // fluxo existente
+            const select = document.getElementById('responsavel_select');
+            const responsavelId = select ? select.value : '';
+            if (!responsavelId) {
+              UI.showMessage('Selecione um responsável existente.', 'error');
+              return;
+            }
+
+            const payload = Object.assign({}, alunoPayloadBase, {
+              responsavel: parseInt(responsavelId, 10)
+            });
+
+            const response = await API.post('/aluno/register_responsavel', payload);
+            console.log('Aluno cadastrado com responsável existente:', response);
+            UI.showMessage('Aluno cadastrado com responsável existente com sucesso!', 'success');
+          }
+
+          // Após sucesso, limpar formulário e recarregar lista de responsáveis
           form.reset();
-          
-          // BACKEND: Opcional: redirecionar para a página de listagem de alunos
-          // setTimeout(() => {
-          //   window.location.href = "alunos.html";
-          // }, 2000);
-          
+          carregarResponsaveis();
+          // Redirecionar opcionalmente para lista de alunos
+          setTimeout(() => {
+            window.location.href = 'alunos.html';
+          }, 900);
+
         } catch (error) {
-          console.error("Erro ao cadastrar aluno:", error);
-          UI.showMessage(error.message || "Erro ao cadastrar aluno. Tente novamente.", "error");
+          console.error('Erro ao cadastrar aluno:', error);
+          UI.showMessage(error.message || 'Erro ao cadastrar aluno. Tente novamente.', 'error');
+        } finally {
+          UI.hideButtonLoading('btn-salvar');
         }
       });
     });
