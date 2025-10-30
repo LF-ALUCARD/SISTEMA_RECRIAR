@@ -86,7 +86,8 @@ function initializeLayout() {
         menu: ['ADMIN', 'PROFESSOR'],
         alunos: ['ADMIN'],
         professores: ['ADMIN'],
-        turmas: ['ADMIN', 'PROFESSOR'],
+        // Turmas agora visível apenas para ADMIN
+        turmas: ['ADMIN'],
         aulas: ['ADMIN', 'PROFESSOR'],
         relatorios: ['ADMIN', 'PROFESSOR'],
         admin: ['ADMIN']

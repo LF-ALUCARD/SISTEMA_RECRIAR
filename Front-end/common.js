@@ -264,7 +264,11 @@ const API = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      // Some endpoints may return 204 No Content or non-JSON responses
+      if (response.status === 204) return null;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) return await response.json();
+      return null;
     } catch (error) {
       console.error('API GET Error:', error);
       throw error;
@@ -286,10 +290,20 @@ const API = {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Tentar ler o corpo da resposta para fornecer contexto do erro
+        let bodyText = '';
+        try {
+          bodyText = await response.text();
+        } catch (e) {
+          bodyText = '';
+        }
+        throw new Error(`HTTP error! status: ${response.status}${bodyText ? ' - ' + bodyText : ''}`);
       }
 
-      return await response.json();
+      if (response.status === 204) return null;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) return await response.json();
+      return null;
     } catch (error) {
       console.error('API POST Error:', error);
       throw error;
@@ -314,7 +328,10 @@ const API = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      if (response.status === 204) return null;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) return await response.json();
+      return null;
     } catch (error) {
       console.error('API PUT Error:', error);
       throw error;
@@ -338,7 +355,10 @@ const API = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      if (response.status === 204) return null;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) return await response.json();
+      return null;
     } catch (error) {
       console.error('API DELETE Error:', error);
       throw error;

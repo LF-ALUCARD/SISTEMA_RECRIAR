@@ -1,5 +1,7 @@
 package recriar.gestao.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -50,4 +52,11 @@ public class TurmaService {
 		}
 	}	
 	/* ----------------------------------------------------------------------------------------------*/
+	
+	public List<Turma> findAll(){
+		
+		List<Turma> lista = repositor.findAll();
+		
+		return lista;
+	}
 }

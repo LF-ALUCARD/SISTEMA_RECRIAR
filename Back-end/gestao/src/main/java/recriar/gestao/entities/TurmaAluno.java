@@ -1,33 +1,30 @@
 package recriar.gestao.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import recriar.gestao.entities.PK.turma_aluno_PK;
+import recriar.gestao.entities.PK.TurmaAlunoPK;
 
 @Entity
 @Table(name = "turma_aluno")
 public class TurmaAluno {
 
 	@EmbeddedId
-	@JsonBackReference
-	private turma_aluno_PK id = new turma_aluno_PK();
+	private TurmaAlunoPK id;
 
 	public TurmaAluno() {
 	}
 
-	public TurmaAluno(turma_aluno_PK id) {
+	public TurmaAluno(TurmaAlunoPK id) {
 		super();
 		this.id = id;
 	}
 
-	public turma_aluno_PK getId() {
+	public TurmaAlunoPK getId() {
 		return id;
 	}
 
-	public void setId(turma_aluno_PK id) {
+	public void setId(TurmaAlunoPK id) {
 		this.id = id;
 	}
 

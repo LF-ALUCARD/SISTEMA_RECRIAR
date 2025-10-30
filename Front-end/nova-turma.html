@@ -19,18 +19,18 @@
       <form id="form-nova-turma" action="#" method="post">
         <div class="form-group">
             <label for="nome">Nome da Turma</label>
-            <input type="text" id="nome" name="nome" placeholder="Digite o nome da turma" required>
+            <input class="form-control" type="text" id="nome" name="nome" placeholder="Digite o nome da turma" required>
             <span id="nome-error" class="error-message"></span>
         </div>
 
         <div class="form-group">
             <label for="descricao">Descrição</label>
-            <textarea id="descricao" name="descricao" rows="4" placeholder="Digite a descrição da turma"></textarea>
+            <textarea class="form-control" id="descricao" name="descricao" rows="4" placeholder="Digite a descrição da turma"></textarea>
             <span id="descricao-error" class="error-message"></span>
         </div>
 
         <div class="form-actions">
-          <button type="submit">Salvar Turma</button>
+          <button type="submit" class="btn-success">Salvar Turma</button>
         </div>
       </form>
     </div>
@@ -39,6 +39,8 @@
   <script src="menu.js" defer></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      if (!Auth.requireAuth()) return;
+
       const form = document.getElementById("form-nova-turma");
       if (!form) return;
 
@@ -59,19 +61,21 @@
         };
 
         try {
-          const response = await API.post("/turma", novaTurma);
-          console.log("Dados da nova turma:", response);
-          UI.showMessage("Turma cadastrada com sucesso!", "success");
-          form.reset();
-          
-          // Opcional: redirecionar para a página de administração da turma recém-criada
-          // setTimeout(() => {
-          //   window.location.href = `administrar-turma.html?id=${response.id}`;
-          // }, 2000);
+          // Tenta criar via /turma/register, fallback para /turma
+          let response = null;
+          try {
+            response = await API.post('/turma/register', novaTurma);
+          } catch (err) {
+            console.warn('POST /turma/register falhou, tentando /turma...', err);
+            response = await API.post('/turma', novaTurma);
+          }
 
+          console.log('Dados da nova turma:', response);
+          UI.showMessage('Turma cadastrada com sucesso!', 'success');
+          form.reset();
         } catch (error) {
-            console.error("Erro ao cadastrar turma:", error);
-            UI.showMessage(error.message || "Erro ao cadastrar turma. Tente novamente.", "error");
+          console.error('Erro ao cadastrar turma:', error);
+          UI.showMessage(error.message || 'Erro ao cadastrar turma. Tente novamente.', 'error');
         }
       });
     });

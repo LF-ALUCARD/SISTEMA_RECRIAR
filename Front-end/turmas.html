@@ -23,7 +23,7 @@
                 <button type="button" 
                         id="btn-incluir" 
                         class="btn-success" 
-                        onclick="window.location.href=\'nova-turma.html\'">
+                        onclick="window.location.href='nova-turma.html'">
                     Nova Turma
                 </button>
             </div>
@@ -62,7 +62,8 @@
 
         async function loadTurmas() {
             const searchTerm = document.getElementById("buscar-turma").value.trim();
-            const url = searchTerm ? `/api/turma/search?nome=${encodeURIComponent(searchTerm)}` : "/api/turma";
+            // Usar endpoints relativos à base definida em CONFIG.API_BASE_URL
+            const url = searchTerm ? `/turma/search?nome=${encodeURIComponent(searchTerm)}` : "/turma/list";
 
             try {
                 const turmas = await API.get(url);
@@ -89,9 +90,9 @@
             turmas.forEach(turma => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${turma.id}</td>
-                    <td>${turma.nome}</td>
-                    <td>${turma.descricao || \'N/A\'}</td>
+                    <td>${turma.id || ''}</td>
+                    <td>${turma.nome || ''}</td>
+                    <td>${turma.descricao || 'N/A'}</td>
                     <td>
                         <button class="btn-action" onclick="editarTurma(${turma.id})">Editar</button>
                         <button class="btn-action btn-danger" onclick="excluirTurma(${turma.id})">Excluir</button>
@@ -110,7 +111,7 @@
             }
 
             try {
-                await API.delete(`/api/turma/${id}`);
+                await API.delete(`/turma/${id}`);
                 UI.showMessage("Turma excluída com sucesso!", "success");
                 loadTurmas(); // Recarrega a lista
             } catch (error) {
