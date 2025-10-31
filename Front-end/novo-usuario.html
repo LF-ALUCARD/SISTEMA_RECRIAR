@@ -17,6 +17,12 @@
 
             <form id="form-novo-usuario" action="#" method="post">
                 <div class="form-group">
+                    <label for="nome">Nome completo</label>
+                    <input type="text" id="nome" name="nome" required>
+                    <span id="nome-error" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" required>
                     <span id="email-error" class="error-message"></span>
@@ -26,16 +32,6 @@
                     <label for="senha">Senha</label>
                     <input type="password" id="senha" name="senha" required>
                     <span id="senha-error" class="error-message"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="tipo">Tipo de Usuário</label>
-                    <select id="tipo" name="tipo" required>
-                        <option value="">Selecione</option>
-                        <option value="ADMIN">Admin</option>
-                        <option value="PROFESSOR">Professor</option>
-                    </select>
-                    <span id="tipo-error" class="error-message"></span>
                 </div>
 
                 <div class="form-actions">
@@ -56,32 +52,24 @@
 
                 UI.clearFormErrors('form-novo-usuario');
 
+                const nomeValid = UI.validateRequired('nome', 'nome-error');
                 const emailValid = UI.validateRequired('email', 'email-error');
                 const senhaValid = UI.validateRequired('senha', 'senha-error');
-                const tipoValid = UI.validateRequired('tipo', 'tipo-error');
 
-                if (!emailValid || !senhaValid || !tipoValid) {
+                if (!nomeValid || !emailValid || !senhaValid) {
                     UI.showMessage("Por favor, preencha todos os campos obrigatórios.", "error");
                     return;
                 }
 
                 const novoUsuario = {
+                    nome: document.getElementById('nome').value.trim(),
                     email: document.getElementById('email').value.trim(),
-                    senha: document.getElementById('senha').value.trim(), // A senha será hash no backend
-                    tipo: document.getElementById('tipo').value
+                    password: document.getElementById('senha').value.trim(), // chave 'password' conforme API
+                    tipo: 0 // sempre ADMIN conforme solicitado
                 };
 
                 try {
-                    let endpoint = '';
-                    if (novoUsuario.tipo === 'ADMIN') {
-                        endpoint = '/admin'; // Endpoint para criar admin
-                    } else if (novoUsuario.tipo === 'PROFESSOR') {
-                        endpoint = '/professor'; // Endpoint para criar professor
-                    } else {
-                        throw new Error('Tipo de usuário inválido.');
-                    }
-
-                    const response = await API.post(endpoint, novoUsuario);
+                    const response = await API.post('/auth/register', novoUsuario);
                     console.log('Usuário cadastrado com sucesso:', response);
                     UI.showMessage('Usuário cadastrado com sucesso!', 'success');
                     form.reset();

@@ -27,7 +27,7 @@ public class UsuarioController {
 	private UsuarioService service;
 	
 	
-	@GetMapping(value = "/{id}")
+	@GetMapping(value = "info/{id}")
 	public ResponseEntity<UsuarioInfoDTO> accont_info(@PathVariable Long id){
 		UsuarioInfoDTO entidade = service.profile(id);
 		return ResponseEntity.ok().body(entidade);

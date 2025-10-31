@@ -252,16 +252,26 @@ const API = {
    */
   async get(endpoint) {
     try {
-      const response = await fetch(`${CONFIG.API_BASE_URL}${endpoint}`, {
+      const url = `${CONFIG.API_BASE_URL}${endpoint}`;
+      console.debug(`API GET -> ${url}`);
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionStorage.getItem('auth_token') || ''}`
         }
       });
-
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Tentar ler corpo da resposta para dar mais contexto
+        let bodyText = '';
+        try {
+          bodyText = await response.text();
+        } catch (e) {
+          bodyText = '';
+        }
+        const errMsg = `HTTP error! status: ${response.status}${bodyText ? ' - ' + bodyText : ''}`;
+        console.error(`API GET Error response -> ${url}:`, response.status, bodyText);
+        throw new Error(errMsg);
       }
 
       // Some endpoints may return 204 No Content or non-JSON responses
@@ -461,11 +471,23 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       if (usernameDisplay) {
         try {
-          const accountInfo = await API.get('/user/account-info');
-          usernameDisplay.textContent = accountInfo.email || 'Usuário';
+          // Preferir endpoint com id: /user/info/{id} quando tivermos o id em sessionStorage
+          const storedId = sessionStorage.getItem('user_id');
+          let accountInfo = null;
+          if (storedId) {
+            accountInfo = await API.get(`/user/info/${encodeURIComponent(storedId)}`);
+          } else {
+            // fallback para endpoint antigo caso não haja id
+            accountInfo = await API.get('/user/account-info');
+          }
+
+          // Prefer 'nome' then 'name' then 'email'. Mostrar apenas o primeiro nome na saudação.
+          const raw = accountInfo && (accountInfo.nome || accountInfo.name || accountInfo.email) ? (accountInfo.nome || accountInfo.name || accountInfo.email) : 'Usuário';
+          const first = String(raw).split(' ')[0];
+          usernameDisplay.textContent = `Olá, ${first}`;
         } catch (error) {
           console.error('Erro ao buscar informações da conta:', error);
-          usernameDisplay.textContent = 'Usuário';
+          usernameDisplay.textContent = 'Olá, Usuário';
         }
       }
 

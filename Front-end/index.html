@@ -61,11 +61,13 @@
 
           const token = response.token;
           const user_type = response.usuario.tipo; // Extrai o tipo de dentro do objeto 'usuario'
+          const user_id = response.usuario.id;
 
 
           // Armazenar o token de autenticação e o tipo de usuário
           sessionStorage.setItem("auth_token", token);
           sessionStorage.setItem("user_type", user_type);
+          if (user_id) sessionStorage.setItem('user_id', String(user_id));
           sessionStorage.setItem("login_timestamp", new Date().toISOString());
 
           window.location.href = "menu.html";

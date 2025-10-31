@@ -33,10 +33,10 @@ public class TurmaAlunoController {
 
 		return ResponseEntity.created(uri).build();
 	}
-	
+
 	@GetMapping("/{id}/turmas")
 	public ResponseEntity<List<Turma>> listarTurmas(@PathVariable Long id) {
-	    List<Turma> turmas = service.listarTurmasPorProfessor(id);
-	    return ResponseEntity.ok(turmas);
+		List<Turma> turmas = service.listarTurmasPorAluno(id);
+		return ResponseEntity.ok(turmas);
 	}
 }

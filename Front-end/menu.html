@@ -53,16 +53,7 @@
         logoutBtn.addEventListener("click", Auth.logout);
       }
 
-      // Carregar informações do usuário para exibir o email
-      try {
-        const userInfo = await API.get("/user/account-info");
-        if (userInfo && userInfo.email) {
-          usernameDisplay.textContent = userInfo.email;
-        }
-      } catch (error) {
-        console.error("Erro ao carregar informações do usuário:", error);
-        usernameDisplay.textContent = "Usuário";
-      }
+      // O elemento de saudação é definido globalmente em common.js (inicialização comum)
 
       renderMenu(userType);
       loadDashboard(userType);

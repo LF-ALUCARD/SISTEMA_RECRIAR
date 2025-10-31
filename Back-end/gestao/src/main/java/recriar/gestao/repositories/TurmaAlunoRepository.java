@@ -10,5 +10,6 @@ import recriar.gestao.entities.PK.TurmaAlunoPK;
 public interface TurmaAlunoRepository extends JpaRepository<TurmaAluno, TurmaAlunoPK>{
 
 	List<TurmaAluno> findByIdAlunoId(Long idAluno);
+	List<TurmaAluno> findByIdTurmaId(Long turmaId);
 
 }

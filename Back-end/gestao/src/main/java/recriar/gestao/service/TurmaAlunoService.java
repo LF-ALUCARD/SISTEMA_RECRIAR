@@ -6,10 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+import recriar.gestao.entities.Aluno;
 import recriar.gestao.entities.Turma;
 import recriar.gestao.entities.TurmaAluno;
+import recriar.gestao.entities.DTO.AlunoListDTO;
 import recriar.gestao.entities.DTO.TurmaAlunoDTO;
 import recriar.gestao.entities.PK.TurmaAlunoPK;
+import recriar.gestao.repositories.AlunoRepository;
 import recriar.gestao.repositories.TurmaAlunoRepository;
 import recriar.gestao.repositories.TurmaRepository;
 
@@ -22,6 +25,9 @@ public class TurmaAlunoService {
 	@Autowired
 	private TurmaRepository repositor_turma;
 	
+	@Autowired
+	private AlunoRepository alunoRepository;
+	
 	/* ----------------------------------------------------------------------------------------------*/
 	@Transactional
 	public void associarAluno(TurmaAlunoDTO dto) {
@@ -32,11 +38,24 @@ public class TurmaAlunoService {
 	}
 	/* ----------------------------------------------------------------------------------------------*/
 	
-	public List<Turma> listarTurmasPorProfessor(Long alunoId) {
+	public List<Turma> listarTurmasPorAluno(Long alunoId) {
 	    List<TurmaAluno> associacoes = repositor.findByIdAlunoId(alunoId);
 	    List<Long> turmaIds = associacoes.stream()
 	        .map(tp -> tp.getId().getTurmaId())
 	        .toList();
 	    return repositor_turma.findAllById(turmaIds); // Este método existe no JpaRepository padrão
 	}
+	/* ----------------------------------------------------------------------------------------------*/
+
+	public List<AlunoListDTO> listarAlunosPorTurma(Long turmaId) {
+	    List<TurmaAluno> associacoes = repositor.findByIdTurmaId(turmaId);
+	    List<Long> alunoIds = associacoes.stream()
+	        .map(ta -> ta.getId().getAlunoId())
+	        .toList();
+	    
+	    List<Aluno> entidade = alunoRepository.findAllById(alunoIds);
+	    List<AlunoListDTO> lista = entidade.stream().map(x -> new AlunoListDTO(x)).toList();
+	    return lista;
+	}
+
 }

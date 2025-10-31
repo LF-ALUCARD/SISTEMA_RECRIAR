@@ -6,12 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+import recriar.gestao.entities.Professor;
 import recriar.gestao.entities.Turma;
 import recriar.gestao.entities.TurmaProfessor;
 import recriar.gestao.entities.DTO.TurmaProfessorDTO;
 import recriar.gestao.entities.PK.TurmaProfessorPK;
+import recriar.gestao.repositories.ProfessorRepository;
 import recriar.gestao.repositories.TurmaProfessorRepository;
 import recriar.gestao.repositories.TurmaRepository;
+import recriar.gestao.service.exceptions.CredenciaisInvalidasException;
 
 @Service
 public class TurmaProfessorService {
@@ -22,6 +25,9 @@ public class TurmaProfessorService {
 
 	@Autowired
 	private TurmaRepository repositor_turma;
+	
+	@Autowired
+	private ProfessorRepository repositor_professor;
 
 
 	@Transactional
@@ -43,4 +49,26 @@ public class TurmaProfessorService {
 	}
 	
 	/* ----------------------------------------------------------------------------------------------*/
+	
+	public Professor findByIdProfessor(Long id) {
+	
+		Professor entidade = repositor_professor.findById(id).orElseThrow(() -> new CredenciaisInvalidasException("Professor Não encontrado"));
+		
+		return entidade;
+	}
+	/* ----------------------------------------------------------------------------------------------*/
+	public TurmaProfessor findByIdTurmaProfessor(Long id) {
+		
+		TurmaProfessor entidade = repositor.findByIdTurmaId(id);
+		
+		return entidade;
+	}
+	/* ----------------------------------------------------------------------------------------------*/
+	public Turma findByIdTurma(Long id) {
+		
+		Turma entidade = repositor_turma.findById(id).orElseThrow(() -> new CredenciaisInvalidasException("Professor Não encontrado"));
+		
+		return entidade;
+	}
+	
 }

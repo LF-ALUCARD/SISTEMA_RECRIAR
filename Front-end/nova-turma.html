@@ -29,6 +29,14 @@
             <span id="descricao-error" class="error-message"></span>
         </div>
 
+        <div class="form-group">
+            <label for="select-professor">Professor responsável</label>
+            <select id="select-professor" class="form-control">
+              <option value="">Carregando professores...</option>
+            </select>
+            <span id="professor-error" class="error-message"></span>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn-success">Salvar Turma</button>
         </div>
@@ -70,14 +78,118 @@
             response = await API.post('/turma', novaTurma);
           }
 
-          console.log('Dados da nova turma:', response);
-          UI.showMessage('Turma cadastrada com sucesso!', 'success');
+          // Determinar id da turma criada (varias APIs retornam formatos diferentes)
+          let turmaId = null;
+          console.log('Resposta criação turma (raw):', response);
+          if (!response) {
+            // não temos corpo, tentar localizar pela lista abaixo
+            turmaId = null;
+          } else if (typeof response === 'number') {
+            turmaId = response;
+          } else if (response.id) {
+            turmaId = response.id;
+          } else if (response.data && response.data.id) {
+            turmaId = response.data.id;
+          } else if (response.turmaId) {
+            turmaId = response.turmaId;
+          }
+
+          // Se não obteve id diretamente, tentar localizar a turma recém-criada via list/search
+          if (!turmaId) {
+            try {
+              // Primeiro tenta buscar por nome exato na lista
+              const todas = await API.get('/turma/list');
+              if (todas && Array.isArray(todas)) {
+                // procurar por nome e descrição que coincidam (última ocorrência)
+                const match = todas.filter(t => t.nome === novaTurma.nome && (t.descricao || '') === (novaTurma.descricao || '')).pop();
+                if (match && match.id) {
+                  turmaId = match.id;
+                }
+              }
+            } catch (e) {
+              console.warn('Não foi possível localizar turma via /turma/list', e);
+            }
+
+            // último fallback: tentar buscar pelo nome via endpoint de busca se existir
+            if (!turmaId) {
+              try {
+                const busca = await API.get(`/turma/search?nome=${encodeURIComponent(novaTurma.nome)}`);
+                if (busca && Array.isArray(busca) && busca.length > 0) {
+                  const match2 = busca.find(t => (t.descricao || '') === (novaTurma.descricao || '')) || busca[busca.length - 1];
+                  if (match2 && match2.id) turmaId = match2.id;
+                }
+              } catch (e) {
+                console.warn('Busca fallback por nome falhou', e);
+              }
+            }
+          }
+
+          // Se selecionado um professor, tentar associar via /turma-professor/register
+          const profSelect = document.getElementById('select-professor');
+          const professorId = profSelect ? parseInt(profSelect.value, 10) : null;
+
+          if (professorId && turmaId) {
+            try {
+              const payload = { professor_id: professorId, turma_id: parseInt(turmaId, 10) };
+              console.log('Enviando associação turma-professor:', payload);
+              await API.post('/turma-professor/register', payload);
+              UI.showMessage('Turma criada e professor associado com sucesso!', 'success');
+            } catch (err) {
+              console.warn('Turma criada mas falha ao associar professor:', err);
+              UI.showMessage('Turma criada, porém houve um problema ao associar o professor.', 'warning');
+            }
+          } else {
+            UI.showMessage('Turma cadastrada com sucesso!', 'success');
+          }
+
           form.reset();
         } catch (error) {
           console.error('Erro ao cadastrar turma:', error);
           UI.showMessage(error.message || 'Erro ao cadastrar turma. Tente novamente.', 'error');
         }
       });
+
+      // carregar lista de professores para o select
+      carregarProfessores();
+
+      async function carregarProfessores() {
+        const select = document.getElementById('select-professor');
+        if (!select) return;
+        select.innerHTML = '';
+
+        try {
+          const professores = await API.get('/professor/list');
+          if (!professores || professores.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'Nenhum professor cadastrado';
+            select.appendChild(opt);
+            select.disabled = true;
+            return;
+          }
+
+          const defaultOpt = document.createElement('option');
+          defaultOpt.value = '';
+          defaultOpt.textContent = 'Selecionar professor (opcional)';
+          select.appendChild(defaultOpt);
+
+          professores.forEach(p => {
+            const opt = document.createElement('option');
+            // Alguns endpoints podem retornar apenas nome/email; se existir id, use-o
+            opt.value = p.id || p.email || p.nome || '';
+            opt.textContent = p.nome ? `${p.nome} ${p.email ? '- ' + p.email : ''}` : (p.email || 'Professor');
+            select.appendChild(opt);
+          });
+          select.disabled = false;
+        } catch (error) {
+          console.error('Erro ao carregar professores:', error);
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'Erro ao carregar professores';
+          select.appendChild(opt);
+          select.disabled = true;
+        }
+      }
     });
   </script>
 </body>

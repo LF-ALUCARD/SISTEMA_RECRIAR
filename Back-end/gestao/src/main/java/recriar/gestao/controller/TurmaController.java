@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import recriar.gestao.entities.Turma;
+import recriar.gestao.entities.DTO.TurmaInfoDTO;
 import recriar.gestao.entities.DTO.TurmaRegisterDTO;
 import recriar.gestao.service.TurmaService;
 
@@ -48,5 +49,13 @@ public class TurmaController {
 		List<Turma> lista = service.findAll();
 		
 		return ResponseEntity.ok().body(lista);
+	}
+	
+	@GetMapping("{id}/info")
+	public ResponseEntity<TurmaInfoDTO> turmaInfo(@PathVariable Long id){
+		
+		TurmaInfoDTO entidade = service.findByTurma(id);
+		
+		return ResponseEntity.ok().body(entidade);
 	}
 }

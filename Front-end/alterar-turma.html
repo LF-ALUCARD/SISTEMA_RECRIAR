@@ -15,33 +15,83 @@
       <h2>Alterar Turma</h2>
       <div id="feedback-message" class="feedback-message" style="display:none;"></div>
 
-      <form id="form-alterar-turma">
-        <div class="form-group">
-          <label for="nome">Nome da Turma</label>
-          <input type="text" id="nome" name="nome" required>
-          <span id="nome-error" class="error-message"></span>
-        </div>
+      <section class="card">
+        <header class="card-header">
+          <h3>Informações da Turma</h3>
+        </header>
 
-        <div class="form-group">
-          <label for="descricao">Descrição</label>
-          <textarea id="descricao" name="descricao" rows="4"></textarea>
-          <span id="descricao-error" class="error-message"></span>
-        </div>
+        <form id="form-alterar-turma" class="card-body grid-2">
+          <div class="form-group">
+            <label for="nome">Nome da Turma</label>
+            <input type="text" id="nome" name="nome" required>
+            <span id="nome-error" class="error-message"></span>
+          </div>
 
-        <div class="form-actions">
-          <button type="submit">Salvar Alterações</button>
+          <div class="form-group">
+            <label for="professor">Professor Responsável</label>
+            <input type="text" id="professor" name="professor" readonly>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="descricao">Descrição</label>
+            <textarea id="descricao" name="descricao" rows="3"></textarea>
+            <span id="descricao-error" class="error-message"></span>
+          </div>
+
+          <div class="form-actions full-width">
+            <button type="submit" class="btn-success">Salvar Alterações</button>
+            <button type="button" class="btn-secondary" onclick="window.location.href='turmas.html'">Voltar</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <header class="card-header">
+          <h3>Alunos da Turma</h3>
+        </header>
+        <div class="card-body">
+          <div class="table-container">
+            <div class="crud-bar" style="margin-bottom:8px; display:flex; gap:8px; align-items:center;">
+              <select id="select-aluno" style="min-width:280px;">
+                <option>Carregando alunos...</option>
+              </select>
+              <button type="button" id="btn-adicionar-aluno" class="btn-success">Adicionar aluno</button>
+            </div>
+            <table class="table" id="tabela-alunos">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Matrícula</th>
+                  <th>Nome</th>
+                  <th>Idade</th>
+                  <th>Sexo</th>
+                  <th>Data Matrícula</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-alunos">
+                <!-- alunos carregados via JS -->
+              </tbody>
+            </table>
+
+            <div id="no-alunos-message" class="no-data-message" style="display:none; margin-top:8px;">
+              <p>Nenhum aluno encontrado nesta turma.</p>
+            </div>
+          </div>
         </div>
-      </form>
+      </section>
     </div>
   </main>
 
   <script src="menu.js" defer></script>
   <script>
+    let currentTurmaId = null;
+
     document.addEventListener("DOMContentLoaded", () => {
       if (!Auth.requireAuth()) return;
 
       const urlParams = new URLSearchParams(window.location.search);
       const turmaId = urlParams.get("id");
+      currentTurmaId = turmaId;
 
       if (turmaId) {
         carregarDadosTurma(turmaId);
@@ -55,20 +105,161 @@
         e.preventDefault();
         salvarAlteracoesTurma(turmaId);
       });
+
+      // botão de adicionar aluno (delegado)
+      document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'btn-adicionar-aluno') {
+          adicionarAluno(currentTurmaId);
+        }
+      });
     });
 
     async function carregarDadosTurma(id) {
       try {
-        const turma = await API.get(`/turma/${id}`);
-        
-        document.getElementById("nome").value = turma.nome;
-        document.getElementById("descricao").value = turma.descricao;
+        // Chamar endpoint /turma/{id}/info conforme solicitado
+        const turma = await API.get(`/turma/${id}/info`);
+
+        if (!turma) {
+          throw new Error('Resposta vazia do servidor');
+        }
+
+        document.getElementById("nome").value = turma.nome || '';
+        document.getElementById("descricao").value = turma.descricao || '';
+        document.getElementById("professor").value = turma.professor || '';
+
+        // Renderizar lista de alunos
+        renderAlunos(turma.alunos || []);
+
+        // Carregar lista de alunos disponíveis para adicionar (exclui os já presentes)
+        carregarAlunosDisponiveis(turma.alunos || []);
 
       } catch (error) {
         console.error("Erro ao carregar dados da turma:", error);
         UI.showMessage("Não foi possível carregar os dados da turma.", "error");
         setTimeout(() => { window.location.href = "turmas.html"; }, 2000);
       }
+    }
+
+    async function carregarAlunosDisponiveis(alunosDaTurma) {
+      try {
+        const todosAlunos = await API.get('/aluno/list');
+
+        const select = document.getElementById('select-aluno');
+        if (!select) return;
+
+        select.innerHTML = '';
+
+        // Criar um conjunto com ids já na turma para evitar duplicação
+        const existentes = new Set((alunosDaTurma || []).map(a => a.id));
+
+        if (!todosAlunos || todosAlunos.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'Nenhum aluno disponível';
+          select.appendChild(opt);
+          select.disabled = true;
+          return;
+        }
+
+        let disponivelCount = 0;
+        todosAlunos.forEach(aluno => {
+          if (existentes.has(aluno.id)) return; // pular já presentes
+
+          const opt = document.createElement('option');
+          opt.value = aluno.id;
+          opt.textContent = `${aluno.matricula || ''} - ${aluno.nomeCompleto || ''}`;
+          select.appendChild(opt);
+          disponivelCount++;
+        });
+
+        if (disponivelCount === 0) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'Nenhum aluno disponível para adicionar';
+          select.appendChild(opt);
+          select.disabled = true;
+        } else {
+          select.disabled = false;
+        }
+
+      } catch (error) {
+        console.error('Erro ao carregar lista de alunos:', error);
+        UI.showMessage('Não foi possível carregar a lista de alunos disponíveis.', 'error');
+      }
+    }
+
+    async function adicionarAluno(turmaId) {
+      if (!turmaId) {
+        UI.showMessage('ID da turma inválido.', 'error');
+        return;
+      }
+
+      const select = document.getElementById('select-aluno');
+      if (!select || !select.value) {
+        UI.showMessage('Selecione um aluno para adicionar.', 'error');
+        return;
+      }
+
+      const alunoId = parseInt(select.value, 10);
+      if (!alunoId) {
+        UI.showMessage('Seleção inválida.', 'error');
+        return;
+      }
+
+      try {
+        // Enviar requisição para registrar aluno na turma
+        await API.post('/turma-aluno/register', { aluno_id: alunoId, turma_id: parseInt(turmaId, 10) });
+        UI.showMessage('Aluno adicionado à turma com sucesso!', 'success');
+
+        // Recarregar dados da turma para atualizar a tabela e o select
+        carregarDadosTurma(turmaId);
+      } catch (error) {
+        console.error('Erro ao adicionar aluno:', error);
+        UI.showMessage(error.message || 'Erro ao adicionar aluno à turma.', 'error');
+      }
+    }
+
+    function renderAlunos(alunos) {
+      const tbody = document.getElementById('tbody-alunos');
+      const noAlunosMessage = document.getElementById('no-alunos-message');
+      tbody.innerHTML = '';
+
+      if (!alunos || alunos.length === 0) {
+        noAlunosMessage.style.display = 'block';
+        return;
+      }
+
+      noAlunosMessage.style.display = 'none';
+
+      alunos.forEach(a => {
+        const row = document.createElement('tr');
+
+        const tdId = document.createElement('td');
+        tdId.textContent = a.id || '';
+        row.appendChild(tdId);
+
+        const tdMat = document.createElement('td');
+        tdMat.textContent = a.matricula || '';
+        row.appendChild(tdMat);
+
+        const tdNome = document.createElement('td');
+        tdNome.textContent = a.nomeCompleto || '';
+        row.appendChild(tdNome);
+
+        const tdIdade = document.createElement('td');
+        tdIdade.textContent = a.idade != null ? a.idade : '';
+        row.appendChild(tdIdade);
+
+        const tdSexo = document.createElement('td');
+        tdSexo.textContent = a.sexo || '';
+        row.appendChild(tdSexo);
+
+        const tdData = document.createElement('td');
+        tdData.textContent = Format.date(a.dataMatricula) || '';
+        row.appendChild(tdData);
+
+        tbody.appendChild(row);
+      });
     }
 
     async function salvarAlteracoesTurma(id) {

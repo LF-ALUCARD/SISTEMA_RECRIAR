@@ -10,4 +10,7 @@ import recriar.gestao.entities.PK.TurmaProfessorPK;
 public interface TurmaProfessorRepository extends JpaRepository<TurmaProfessor, TurmaProfessorPK>{
 
 	List<TurmaProfessor> findByIdProfessorId(Long professorId);
+	TurmaProfessor findByIdTurmaId(Long turmaId);
+	
+	boolean existsByIdTurmaId(Long id);
 }
