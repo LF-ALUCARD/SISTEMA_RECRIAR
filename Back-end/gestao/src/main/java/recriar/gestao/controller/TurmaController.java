@@ -17,6 +17,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import recriar.gestao.entities.Turma;
 import recriar.gestao.entities.DTO.TurmaInfoDTO;
 import recriar.gestao.entities.DTO.TurmaRegisterDTO;
+import recriar.gestao.service.TurmaAlunoService;
+import recriar.gestao.service.TurmaProfessorService;
 import recriar.gestao.service.TurmaService;
 
 @RestController
@@ -25,6 +27,12 @@ public class TurmaController {
 
 	@Autowired
 	private TurmaService service;
+	
+	@Autowired
+	private TurmaAlunoService serviceAluno;
+	
+	@Autowired
+	private TurmaProfessorService serviceProfessor;
 	
 	@PostMapping(value = "register")
 	public ResponseEntity<Turma> register(@RequestBody TurmaRegisterDTO obj){
@@ -38,6 +46,8 @@ public class TurmaController {
 	@DeleteMapping("delete/{id}")
 	public ResponseEntity<Void> deleteTurma(@PathVariable Long id){
 		
+		serviceAluno.delete(id);
+		serviceProfessor.delete(id);		
 		service.apagarTurma(id);
 		
 		return ResponseEntity.noContent().build();

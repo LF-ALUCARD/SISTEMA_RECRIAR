@@ -134,12 +134,18 @@
               console.log('Enviando associação turma-professor:', payload);
               await API.post('/turma-professor/register', payload);
               UI.showMessage('Turma criada e professor associado com sucesso!', 'success');
+              // Redirecionar para a lista de turmas após sucesso
+              setTimeout(() => { window.location.href = 'turmas.html'; }, 800);
             } catch (err) {
               console.warn('Turma criada mas falha ao associar professor:', err);
               UI.showMessage('Turma criada, porém houve um problema ao associar o professor.', 'warning');
+              // Mesmo com falha na associação, já criamos a turma: voltar para a lista
+              setTimeout(() => { window.location.href = 'turmas.html'; }, 800);
             }
           } else {
             UI.showMessage('Turma cadastrada com sucesso!', 'success');
+            // Voltar para a listagem de turmas
+            setTimeout(() => { window.location.href = 'turmas.html'; }, 800);
           }
 
           form.reset();

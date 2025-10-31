@@ -57,5 +57,20 @@ public class TurmaAlunoService {
 	    List<AlunoListDTO> lista = entidade.stream().map(x -> new AlunoListDTO(x)).toList();
 	    return lista;
 	}
+	/* ----------------------------------------------------------------------------------------------*/
+	@Transactional
+	public void delete(Long id) {
+		
+		repositor.deleteByIdTurmaId(id);
+		
+	}
+	/* ----------------------------------------------------------------------------------------------*/
+	@Transactional
+	public void deleteAluno(Long id) {
+		
+		repositor.deleteByIdAlunoId(id);
+		
+	}
+	/* ----------------------------------------------------------------------------------------------*/
 
 }

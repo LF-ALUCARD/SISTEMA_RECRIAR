@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import recriar.gestao.entities.Aluno;
 import recriar.gestao.entities.Responsavel;
 import recriar.gestao.entities.DTO.AlunoListDTO;
@@ -21,7 +22,7 @@ import recriar.gestao.service.exceptions.CriacaoNegadaException;
 public class AlunoService {
 
 	@Autowired
-	private AlunoRepository repositorAluno;
+	private AlunoRepository repositor;
 
 	@Autowired
 	private ResponsavelRepository repositorResponsavel;
@@ -35,16 +36,16 @@ public class AlunoService {
 
 		Responsavel responsavel = converterResponsavel(obj);
 		Aluno entidade = converterAluno(obj, responsavel);
-		
-		entidade.setMatricula("TEMP"); 
 
-	    entidade = repositorAluno.save(entidade); 
+		entidade.setMatricula("TEMP");
 
-	    String ano = String.valueOf(LocalDate.now().getYear());
-	    String matricula = ano + "A" + String.format("%03d", entidade.getId());
-	    entidade.setMatricula(matricula);
+		entidade = repositor.save(entidade);
 
-		return repositorAluno.save(entidade);
+		String ano = String.valueOf(LocalDate.now().getYear());
+		String matricula = ano + "A" + String.format("%03d", entidade.getId());
+		entidade.setMatricula(matricula);
+
+		return repositor.save(entidade);
 	}
 
 	private Responsavel converterResponsavel(AlunoRegisterDTO obj) {
@@ -85,23 +86,24 @@ public class AlunoService {
 			throw new CriacaoNegadaException("Documento existemte");
 		}
 
-	    Aluno entidade = converterAluno(obj);
-	    entidade.setMatricula("TEMP"); 
+		Aluno entidade = converterAluno(obj);
+		entidade.setMatricula("TEMP");
 
-	    entidade = repositorAluno.save(entidade); 
+		entidade = repositor.save(entidade);
 
-	    String ano = String.valueOf(LocalDate.now().getYear());
-	    String matricula = ano + "A" + String.format("%03d", entidade.getId());
-	    entidade.setMatricula(matricula);
+		String ano = String.valueOf(LocalDate.now().getYear());
+		String matricula = ano + "A" + String.format("%03d", entidade.getId());
+		entidade.setMatricula(matricula);
 
-	    return repositorAluno.save(entidade); 
+		return repositor.save(entidade);
 
 	}
 
 	private Aluno converterAluno(AlunoRegisterResponseDTO dto) {
 
 		Aluno aluno = new Aluno();
-		Responsavel responsavel = repositorResponsavel.findById(dto.getResponsavel()).orElseThrow(() -> new CriacaoNegadaException("Responsavél não encontrado"));
+		Responsavel responsavel = repositorResponsavel.findById(dto.getResponsavel())
+				.orElseThrow(() -> new CriacaoNegadaException("Responsavél não encontrado"));
 
 		aluno.setNome(dto.getNome());
 		aluno.setSobrenome(dto.getSobrenome());
@@ -114,22 +116,30 @@ public class AlunoService {
 		return aluno;
 	}
 	/*-------------------------------------------------------------------------*/
-	
-	public List<AlunoListDTO> findAll(){
-		
-		List<Aluno> lista = repositorAluno.findAll();
+
+	public List<AlunoListDTO> findAll() {
+
+		List<Aluno> lista = repositor.findAll();
 		List<AlunoListDTO> listagem = lista.stream().map(x -> new AlunoListDTO(x)).toList();
-		
+
 		return listagem;
 	}
 	/*-------------------------------------------------------------------------*/
-	
-	public List<ResponsavelListDTO> findAllResponsavel(){
-		
+
+	public List<ResponsavelListDTO> findAllResponsavel() {
+
 		List<Responsavel> lista = repositorResponsavel.findAll();
 		List<ResponsavelListDTO> listagem = lista.stream().map(x -> new ResponsavelListDTO(x)).toList();
-		
+
 		return listagem;
 	}
-	
+
+	/*-------------------------------------------------------------------------*/
+	@Transactional
+	public void delete(Long id) {
+		
+		repositor.deleteById(id);
+
+	}
+	/*-------------------------------------------------------------------------*/
 }

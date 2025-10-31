@@ -11,5 +11,8 @@ public interface TurmaAlunoRepository extends JpaRepository<TurmaAluno, TurmaAlu
 
 	List<TurmaAluno> findByIdAlunoId(Long idAluno);
 	List<TurmaAluno> findByIdTurmaId(Long turmaId);
+	
+	void deleteByIdTurmaId(Long id);
+	void deleteByIdAlunoId(Long id);
 
 }

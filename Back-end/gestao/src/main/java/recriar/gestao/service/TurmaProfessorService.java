@@ -70,5 +70,12 @@ public class TurmaProfessorService {
 		
 		return entidade;
 	}
+	/* ----------------------------------------------------------------------------------------------*/
+	@Transactional
+	public void delete(Long id) {
+		
+		repositor.deleteByIdTurmaId(id);
+		
+	}
 	
 }

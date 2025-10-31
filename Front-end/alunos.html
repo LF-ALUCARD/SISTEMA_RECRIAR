@@ -6,10 +6,38 @@ _HTML
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Alunos - Sistema Recriar</title>
     <link rel="stylesheet" href="style.css">
+        <style>
+        /* Modal de confirmação customizado */
+        .confirm-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 1200; }
+        .confirm-modal.show { display: flex; }
+        .confirm-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+        .confirm-modal-card { position: relative; background: #fff; border-radius: 8px; padding: 18px; max-width: 420px; width: calc(100% - 40px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2; }
+        .confirm-modal-card h3 { margin: 0 0 8px 0; font-size: 18px; }
+        .confirm-modal-card p { margin: 0 0 16px 0; color: #333; }
+        .confirm-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .confirm-modal .btn { padding: 8px 12px; border-radius: 4px; border: 1px solid transparent; cursor: pointer; }
+        .confirm-modal .btn:hover { opacity: 0.95; }
+        .confirm-modal .btn-danger { background: #e74c3c; color: #fff; border-color: rgba(0,0,0,0.05); }
+        .confirm-modal .btn-secondary { background: #f0f0f0; color: #111; }
+        @media (max-width:480px){ .confirm-modal-card{padding:14px} }
+        </style>
     <script src="common.js" defer></script>
 </head>
 <body>
     <div id="menu-container"></div>
+
+        <!-- Modal de confirmação de exclusão -->
+        <div id="confirm-modal" class="confirm-modal" aria-hidden="true">
+            <div class="confirm-modal-backdrop" data-action="cancel"></div>
+            <div class="confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+                <h3 id="confirm-modal-title">Confirmação de exclusão</h3>
+                <p id="confirm-modal-message">Você realmente deseja excluir este aluno?</p>
+                <div class="confirm-modal-actions">
+                    <button id="confirm-cancel" class="btn btn-secondary">Cancelar</button>
+                    <button id="confirm-ok" class="btn btn-danger">Excluir</button>
+                </div>
+            </div>
+        </div>
 
     <main>
         <div class="container">
@@ -38,6 +66,7 @@ _HTML
                             <th>Idade</th>
                             <th>Sexo</th>
                             <th>Data de Matrícula</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-alunos">
@@ -53,36 +82,18 @@ _HTML
 
     <script src="menu.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const alunos = await API.get('/aluno/list');
-        const tableId = 'tabela-alunos'; // ID da sua tabela
-        Table.clearBody(tableId);
-
-        if (alunos.length === 0) {
-            UI.showMessage('Nenhum aluno encontrado.', 'info');
-            return;
-        }
-
-        alunos.forEach(aluno => {
-            const row = Table.createRow(aluno, [
-                'matricula',
-                'nomeCompleto',
-                'idade',
-                'sexo',
-                { field: 'dataMatricula', format: Format.date }
-            ]);
-            Table.addRow(tableId, row);
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!Auth.requireAuth()) return;
+            const searchInput = document.getElementById('buscar-aluno');
+            if (searchInput) searchInput.addEventListener('input', debounce(loadAlunos, 300));
+            // Carrega a lista de alunos usando o renderer comum
+            loadAlunos();
         });
-    } catch (error) {
-        console.error('Erro ao carregar alunos:', error);
-        UI.showMessage('Erro ao carregar alunos.', 'error');
-    }
-});
 
         async function loadAlunos() {
             const searchTerm = document.getElementById("buscar-aluno").value.trim();
-            const url = searchTerm ? `/api/aluno/search?nome=${encodeURIComponent(searchTerm)}` : "/api/aluno";
+            // Usar endpoints relativos à base configurada em CONFIG.API_BASE_URL
+            const url = searchTerm ? `/aluno/search?nome=${encodeURIComponent(searchTerm)}` : "/aluno/list";
 
             try {
                 const alunos = await API.get(url);
@@ -109,11 +120,11 @@ _HTML
             alunos.forEach(aluno => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${aluno.matricula}</td>
-                    <td>${aluno.nome} ${aluno.sobrenome}</td>
-                    <td>${aluno.idade}</td>
+                    <td>${aluno.matricula || ''}</td>
+                    <td>${aluno.nomeCompleto || ''}</td>
+                    <td>${aluno.idade != null ? aluno.idade : ''}</td>
                     <td>${formatarSexo(aluno.sexo)}</td>
-                    <td>${new Date(aluno.data_matricula).toLocaleDateString()}</td>
+                    <td>${Format.date(aluno.dataMatricula)}</td>
                     <td>
                         <button class="btn-action" onclick="editarAluno(${aluno.id})">Editar</button>
                         <button class="btn-action btn-danger" onclick="excluirAluno(${aluno.id})">Excluir</button>
@@ -132,13 +143,53 @@ _HTML
             window.location.href = `alterar-aluno.html?id=${id}`;
         }
 
+        /**
+         * Exibe um modal de confirmação estilizado.
+         * Retorna uma Promise que resolve true se o usuário confirmar, ou false caso cancele.
+         */
+        function showConfirmModal(message) {
+            return new Promise(resolve => {
+                const modal = document.getElementById('confirm-modal');
+                const msgEl = document.getElementById('confirm-modal-message');
+                const btnOk = document.getElementById('confirm-ok');
+                const btnCancel = document.getElementById('confirm-cancel');
+                const backdrop = modal.querySelector('.confirm-modal-backdrop');
+
+                msgEl.textContent = message || 'Você tem certeza?';
+
+                function cleanup() {
+                    modal.classList.remove('show');
+                    modal.setAttribute('aria-hidden', 'true');
+                    btnOk.removeEventListener('click', onOk);
+                    btnCancel.removeEventListener('click', onCancel);
+                    backdrop.removeEventListener('click', onCancel);
+                    document.removeEventListener('keydown', onKeyDown);
+                }
+
+                function onOk() { cleanup(); resolve(true); }
+                function onCancel() { cleanup(); resolve(false); }
+                function onKeyDown(e) { if (e.key === 'Escape') onCancel(); }
+
+                btnOk.addEventListener('click', onOk);
+                btnCancel.addEventListener('click', onCancel);
+                backdrop.addEventListener('click', onCancel);
+                document.addEventListener('keydown', onKeyDown);
+
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+                // foco no botão de confirmar para acessibilidade
+                setTimeout(() => btnOk.focus(), 50);
+            });
+        }
+
         async function excluirAluno(id) {
-            if (!confirm("Tem certeza de que deseja excluir este aluno?")) {
-                return;
-            }
+            const message = 'Você realmente deseja excluir este aluno? Esta ação não pode ser desfeita.';
+            const confirmed = await showConfirmModal(message);
+            if (!confirmed) return;
 
             try {
-                await API.delete(`/api/aluno/${id}`);
+                // Usar endpoint /aluno/delete/{id} conforme especificado
+                await API.delete(`/aluno/delete/${id}`);
                 UI.showMessage("Aluno excluído com sucesso!", "success");
                 loadAlunos(); // Recarrega a lista
             } catch (error) {
