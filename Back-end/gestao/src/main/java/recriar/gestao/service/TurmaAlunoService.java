@@ -72,5 +72,10 @@ public class TurmaAlunoService {
 		
 	}
 	/* ----------------------------------------------------------------------------------------------*/
-
+	@Transactional
+	public void deleteAlunoTurma(Long turmaId, Long alunoId) {
+		
+		repositor.deleteByTurmaIdAndAlunoId( turmaId, alunoId);
+		
+	}
 }

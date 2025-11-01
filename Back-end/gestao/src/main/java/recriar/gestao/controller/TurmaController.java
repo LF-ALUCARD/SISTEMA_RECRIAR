@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import recriar.gestao.entities.Turma;
 import recriar.gestao.entities.DTO.TurmaInfoDTO;
 import recriar.gestao.entities.DTO.TurmaRegisterDTO;
+import recriar.gestao.entities.DTO.TurmaUpdateDTO;
 import recriar.gestao.service.TurmaAlunoService;
 import recriar.gestao.service.TurmaProfessorService;
 import recriar.gestao.service.TurmaService;
@@ -53,6 +55,14 @@ public class TurmaController {
 		return ResponseEntity.noContent().build();
 	}
 	
+	@DeleteMapping("turma/{turma_id}/aluno/{aluno_id}")
+	public ResponseEntity<Void> deleteAlunoTurma(@PathVariable Long turma_id,@PathVariable Long aluno_id ){
+		
+		serviceAluno.deleteAlunoTurma(turma_id, aluno_id);
+		
+		return ResponseEntity.noContent().build();
+	}
+	
 	@GetMapping("list")
 	public ResponseEntity<List<Turma>> findAll(){
 		
@@ -67,5 +77,13 @@ public class TurmaController {
 		TurmaInfoDTO entidade = service.findByTurma(id);
 		
 		return ResponseEntity.ok().body(entidade);
+	}
+	
+	@PutMapping("update/{id}")
+	public ResponseEntity<TurmaInfoDTO> updateTurma(@PathVariable Long id, @RequestBody TurmaUpdateDTO entidade){
+		
+		TurmaInfoDTO turma = service.atualizarDados(id, entidade);
+		
+		return ResponseEntity.ok().body(turma);
 	}
 }

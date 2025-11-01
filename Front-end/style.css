@@ -125,6 +125,8 @@ body:not(.login-page) main {
   padding: 2rem;
   width: calc(100% - 250px);
   min-height: calc(100vh - 60px);
+  opacity: 1;
+  transition: opacity 0.15s ease-in-out;
 }
 
 .container {

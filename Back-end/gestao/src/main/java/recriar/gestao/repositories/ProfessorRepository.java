@@ -6,6 +6,7 @@ import recriar.gestao.entities.Professor;
 
 public interface ProfessorRepository extends JpaRepository<Professor, Long> {
 	Professor findByEmail(String email);
+	Professor findByNome(String nome);
 
 	boolean existsByEmail(String email);
 

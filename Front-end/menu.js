@@ -6,9 +6,17 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Verificar se é uma página que precisa do menu
   if (document.getElementById('menu-container')) {
+    // Inicialmente define a opacidade como 0
+    document.querySelector('main').style.opacity = '0';
+    
     initializeLayout();
     setActiveMenuItem();
     setupMobileMenu();
+    
+    // Após um pequeno delay, faz o conteúdo aparecer suavemente
+    setTimeout(() => {
+      document.querySelector('main').style.opacity = '1';
+    }, 50);
   }
 });
 
@@ -55,14 +63,6 @@ function initializeLayout() {
             <span class="menu-icon">📚</span>
             <span class="menu-text">Turmas</span>
           </a></li>
-          <li><a href="aulas.html" data-page="aulas">
-            <span class="menu-icon">📅</span>
-            <span class="menu-text">Aulas</span>
-          </a></li>
-          <li><a href="relatorios.html" data-page="relatorios">
-            <span class="menu-icon">📊</span>
-            <span class="menu-text">Relatórios</span>
-          </a></li>
           <li><a href="admin.html" data-page="admin">
             <span class="menu-icon">⚙️</span>
             <span class="menu-text">Admin</span>
@@ -88,8 +88,6 @@ function initializeLayout() {
         professores: ['ADMIN'],
         // Turmas agora visível apenas para ADMIN
         turmas: ['ADMIN'],
-        aulas: ['ADMIN', 'PROFESSOR'],
-        relatorios: ['ADMIN', 'PROFESSOR'],
         admin: ['ADMIN']
       };
 
@@ -160,7 +158,6 @@ function getCurrentPageName() {
     'alunos.html': 'alunos',
     'professores.html': 'professores',
     'turmas.html': 'turmas',
-    'aulas.html': 'aulas',
     'admin.html': 'admin',
     'novo-aluno.html': 'alunos',
     'alterar-aluno.html': 'alunos',
@@ -171,7 +168,6 @@ function getCurrentPageName() {
     'nova-turma.html': 'turmas',
     'alterar-turma.html': 'turmas',
     'administrar-turma.html': 'turmas',
-    'relatorios.html': 'relatorios',
     'novo-usuario.html': 'admin',
     'alterar-usuario.html': 'admin',
     'excluir-usuario.html': 'admin'
@@ -204,10 +200,20 @@ function setupMenuEvents() {
   const menuLinks = document.querySelectorAll('.menu-lateral a');
   menuLinks.forEach(link => {
     link.addEventListener('click', function(e) {
+      e.preventDefault();
+      
       // Adicionar efeito visual de clique
       this.style.transform = 'scale(0.95)';
+      
+      // Armazenar o href para navegação
+      const href = this.getAttribute('href');
+      
+      // Adicionar classe de fade-out ao conteúdo principal
+      document.querySelector('main').style.opacity = '0';
+      
+      // Aguardar a animação de fade-out e navegar
       setTimeout(() => {
-        this.style.transform = '';
+        window.location.href = href;
       }, 150);
     });
   });
