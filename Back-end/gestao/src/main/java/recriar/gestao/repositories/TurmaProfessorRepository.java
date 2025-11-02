@@ -19,6 +19,7 @@ public interface TurmaProfessorRepository extends JpaRepository<TurmaProfessor, 
 	TurmaProfessor findByIdTurmaId(Long turmaId);
 
 	boolean existsByIdTurmaId(Long id);
+	boolean existsByIdProfessorId(Long id);
 
 	void deleteByIdTurmaId(Long id);
 }

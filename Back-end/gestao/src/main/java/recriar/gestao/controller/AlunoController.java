@@ -9,15 +9,18 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import recriar.gestao.entities.Aluno;
+import recriar.gestao.entities.DTO.AlunoInfoDTO;
 import recriar.gestao.entities.DTO.AlunoListDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterDTO;
 import recriar.gestao.entities.DTO.AlunoRegisterResponseDTO;
+import recriar.gestao.entities.DTO.AlunoUpdateDTO;
 import recriar.gestao.entities.DTO.ResponsavelListDTO;
 import recriar.gestao.service.AlunoService;
 import recriar.gestao.service.TurmaAlunoService;
@@ -68,6 +71,14 @@ public class AlunoController {
 		return ResponseEntity.ok().body(lista);
 	}
 	
+	@GetMapping("info/{id}")
+	public ResponseEntity<AlunoInfoDTO> infoAluno(@PathVariable Long id){
+		
+		AlunoInfoDTO aluno = service.alunoInfo(id);
+		
+		return ResponseEntity.ok().body(aluno);
+	}
+	
 	@DeleteMapping("delete/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id){
 		
@@ -77,6 +88,12 @@ public class AlunoController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	
+	@PutMapping("update/{id}")
+	public ResponseEntity<AlunoInfoDTO> updateAluno(@PathVariable Long id, @RequestBody AlunoUpdateDTO entidade){
+		
+		AlunoInfoDTO aluno = service.atualizarDados(id, entidade);
+		
+		return ResponseEntity.ok().body(aluno);
+	}
 
 }

@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 	}
 	
 	@ExceptionHandler(BancoDeDadosExceptions.class)
-	public ResponseEntity<Map<String,Object>> BancoDeDados(BancoDeDadosExceptions ex){
+	public ResponseEntity<Map<String,Object>> handlerBancoDeDados(BancoDeDadosExceptions ex){
 		Map<String, Object> body = new HashMap<>();
 		body.put("message", ex.getMessage());
 		body.put("error", "BANCO NÃO CONECTADO");
@@ -46,10 +46,18 @@ public class GlobalExceptionHandler {
 	}
 	
 	@ExceptionHandler(CodicoInvalidoException.class)
-	public ResponseEntity<Map<String,Object>> BancoDeDados(CodicoInvalidoException ex){
+	public ResponseEntity<Map<String,Object>> handlerOpcaoSexo(CodicoInvalidoException ex){
 		Map<String, Object> body = new HashMap<>();
 		body.put("message", ex.getMessage());
 		body.put("error", "TIPO DE SEXO INVÁLIDO");
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+	}
+	
+	@ExceptionHandler(BloqueioDeleteException.class)
+	public ResponseEntity<Map<String,Object>> handlerDeleteErrado(BloqueioDeleteException ex){
+		Map<String, Object> body = new HashMap<>();
+		body.put("message", ex.getMessage());
+		body.put("error", "USÁRIO VINCULADO");
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
 	}
 }

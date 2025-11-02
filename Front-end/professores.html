@@ -34,6 +34,7 @@
                         <tr>
                             <th>Nome</th>
                             <th>Email</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-professores">
@@ -101,7 +102,15 @@
                 emailCell.textContent = professor.email || '-';
                 row.appendChild(emailCell);
 
-                // Não renderizar coluna de ações — mostramos apenas nome e email
+                // Coluna de ações (mesmo markup/classes usados em alunos.html e turmas.html)
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'actions';
+                actionsCell.innerHTML = `
+                    <button class="btn-action" onclick="editarProfessor(${professor.id})" style="padding: 10px 22px; font-size: 17px; margin: 0 5px;">Editar</button>
+                    <button class="btn-action btn-danger" onclick="excluirProfessor(${professor.id})" style="padding: 10px 22px; font-size: 17px; margin: 0 5px;">Excluir</button>
+                `;
+                row.appendChild(actionsCell);
+
                 tbody.appendChild(row);
             });
         }

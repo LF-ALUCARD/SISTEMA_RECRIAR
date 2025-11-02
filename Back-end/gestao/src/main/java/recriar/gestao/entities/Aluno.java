@@ -19,7 +19,7 @@ import recriar.gestao.entities.enums.Sexo;
 public class Aluno implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -30,6 +30,7 @@ public class Aluno implements Serializable {
 	private Integer idade;
 	private Sexo sexo;
 	private LocalDate data_matricula;
+	private LocalDate data_nascimento;
 
 	@ManyToOne
 	@JoinColumn(name = "responsavel_id")
@@ -40,7 +41,7 @@ public class Aluno implements Serializable {
 	}
 
 	public Aluno(Long id, String matricula, String nome, String sobrenome, String documento, Integer idade, Sexo sexo,
-			LocalDate data_matricula, Responsavel responsavel) {
+			LocalDate data_matricula, Responsavel responsavel, LocalDate data_nascimento) {
 		super();
 		this.id = id;
 		this.matricula = matricula;
@@ -51,6 +52,7 @@ public class Aluno implements Serializable {
 		this.sexo = sexo;
 		this.data_matricula = data_matricula;
 		this.responsavel = responsavel;
+		this.data_nascimento = data_nascimento;
 	}
 
 	public Long getId() {
@@ -123,6 +125,14 @@ public class Aluno implements Serializable {
 
 	public void setResponsavel(Responsavel responsavel) {
 		this.responsavel = responsavel;
+	}
+
+	public LocalDate getData_nascimento() {
+		return data_nascimento;
+	}
+
+	public void setData_nascimento(LocalDate data_nascimento) {
+		this.data_nascimento = data_nascimento;
 	}
 
 }

@@ -18,24 +18,25 @@
       <form id="form-alterar-professor">
         <div class="form-group">
           <label for="nome">Nome</label>
-          <input type="text" id="nome" name="nome" required>
+          <input type="text" id="nome" name="nome" required disabled>
           <span id="nome-error" class="error-message"></span>
         </div>
 
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" name="email" required>
+          <input type="email" id="email" name="email" required disabled>
           <span id="email-error" class="error-message"></span>
         </div>
 
         <div class="form-group">
           <label for="documento">Documento</label>
-          <input type="text" id="documento" name="documento" required>
+          <input type="text" id="documento" name="documento" required disabled>
           <span id="documento-error" class="error-message"></span>
         </div>
 
         <div class="form-actions">
-          <button type="submit">Salvar Alterações</button>
+          <button type="button" id="btn-editar">Editar</button>
+          <button type="submit" id="btn-salvar" style="display: none;">Salvar Alterações</button>
         </div>
       </form>
     </div>
@@ -57,6 +58,13 @@
         setTimeout(() => { window.location.href = "professores.html"; }, 2000);
       }
 
+      document.getElementById("btn-editar").addEventListener("click", function() {
+        const inputs = document.querySelectorAll("#form-alterar-professor input");
+        inputs.forEach(input => input.disabled = false);
+        document.getElementById("btn-editar").style.display = "none";
+        document.getElementById("btn-salvar").style.display = "block";
+      });
+
       document.getElementById("form-alterar-professor").addEventListener("submit", async function(e){
         e.preventDefault();
         salvarAlteracoesProfessor(professorId);
@@ -65,7 +73,7 @@
 
     async function carregarDadosProfessor(id) {
       try {
-        const professor = await API.get(`/professor/${id}`);
+        const professor = await API.get(`/professor/info/${id}`);
         
         document.getElementById("nome").value = professor.nome;
         document.getElementById("email").value = professor.email;
@@ -97,7 +105,7 @@
       };
 
       try {
-        await API.put(`/professor/${id}`, dadosProfessorAtualizados);
+        await API.put(`/professor/update/${id}`, dadosProfessorAtualizados);
         UI.showMessage("Professor alterado com sucesso!", "success");
         setTimeout(() => { window.location.href = "professores.html"; }, 2000);
       } catch (error) {

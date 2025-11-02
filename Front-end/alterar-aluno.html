@@ -15,7 +15,7 @@
       <h2>Alterar Aluno</h2>
       <div id="feedback-message" class="feedback-message" style="display:none;"></div>
 
-      <form id="form-alterar-aluno">
+  <form id="form-alterar-aluno">
         <!-- Campos do Aluno -->
         <div class="form-group">
           <label for="nome">Nome do Aluno</label>
@@ -33,8 +33,12 @@
           <span id="documento-error" class="error-message"></span>
         </div>
         <div class="form-group">
+          <label for="data_nascimeto">Data de Nascimento</label>
+          <input type="date" id="data_nascimeto" name="data_nascimeto" disabled>
+        </div>
+        <div class="form-group">
           <label for="idade">Idade do Aluno</label>
-          <input type="number" id="idade" name="idade" required>
+          <input type="number" id="idade" name="idade" required disabled>
           <span id="idade-error" class="error-message"></span>
         </div>
         <div class="form-group">
@@ -90,7 +94,8 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit">Salvar Alterações</button>
+          <button type="button" id="btn-editar-salvar" class="btn-success">Editar</button>
+          <button type="button" class="btn-secondary" onclick="window.location.href='alunos.html'">Voltar</button>
         </div>
       </form>
     </div>
@@ -105,6 +110,8 @@
       const alunoId = urlParams.get("id");
 
       if (alunoId) {
+        // iniciar com campos em modo leitura
+        setFormEditable(false);
         carregarDadosAluno(alunoId);
       } else {
         console.error("ID do aluno não fornecido na URL.");
@@ -112,33 +119,54 @@
         setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
       }
 
-      document.getElementById("form-alterar-aluno").addEventListener("submit", async function(e){
-        e.preventDefault();
-        salvarAlteracoesAluno(alunoId);
-      });
+      // controle do botão Editar/Salvar
+      const btnEditarSalvar = document.getElementById('btn-editar-salvar');
+      let isEditing = false;
+      if (btnEditarSalvar) {
+        btnEditarSalvar.addEventListener('click', async function () {
+          if (!isEditing) {
+            // entrar em modo edição
+            isEditing = true;
+            setFormEditable(true);
+            btnEditarSalvar.textContent = 'Salvar';
+            btnEditarSalvar.classList.add('editing');
+            document.getElementById('nome').focus();
+            return;
+          }
+
+          // já em edição -> salvar alterações
+          await salvarAlteracoesAluno(alunoId);
+          // após salvar com sucesso, volta ao modo leitura dentro da função
+          isEditing = false;
+        });
+      }
     });
 
     async function carregarDadosAluno(id) {
       try {
-        const aluno = await API.get(`/aluno/${id}`);
+        // usar endpoint /aluno/info/{id}
+        const aluno = await API.get(`/aluno/info/${id}`);
         
-        document.getElementById("nome").value = aluno.nome;
-        document.getElementById("sobrenome").value = aluno.sobrenome;
-        document.getElementById("documento").value = aluno.documento;
-        document.getElementById("idade").value = aluno.idade;
-        document.getElementById("sexo").value = aluno.sexo;
+        // mapear campos do endpoint /aluno/info
+        document.getElementById("nome").value = aluno.nome || '';
+        document.getElementById("sobrenome").value = aluno.sobrenome || '';
+        document.getElementById("documento").value = aluno.documento || '';
+        document.getElementById("idade").value = aluno.idade != null ? aluno.idade : '';
+        // o endpoint atual não traz 'sexo' no exemplo fornecido; manter campo se existir
+        if (aluno.sexo) document.getElementById("sexo").value = aluno.sexo;
 
-        if (aluno.responsavel) {
-          document.getElementById("responsavel_nome").value = aluno.responsavel.nome;
-          document.getElementById("responsavel_documento").value = aluno.responsavel.documento;
-          document.getElementById("responsavel_email").value = aluno.responsavel.email;
-          document.getElementById("responsavel_telefone").value = aluno.responsavel.telefone;
-          document.getElementById("responsavel_rua").value = aluno.responsavel.rua;
-          document.getElementById("responsavel_numero").value = aluno.responsavel.numero;
-          document.getElementById("responsavel_bairro").value = aluno.responsavel.bairro;
-          document.getElementById("responsavel_cidade").value = aluno.responsavel.cidade;
-          document.getElementById("responsavel_endereco_complemento").value = aluno.responsavel.endereco_complemento;
-        }
+        // campos do responsável (no payload de info muitos campos estão no nível superior)
+        document.getElementById("responsavel_nome").value = aluno.responsavel_nome || '';
+        document.getElementById("responsavel_documento").value = aluno.responsavel_documento || '';
+        // email/telefone retornados no root do objeto no exemplo
+        document.getElementById("responsavel_email").value = aluno.email || '';
+        document.getElementById("responsavel_telefone").value = aluno.telefone || '';
+        document.getElementById("responsavel_rua").value = aluno.rua || '';
+        document.getElementById("responsavel_numero").value = aluno.numero || '';
+        document.getElementById("responsavel_bairro").value = aluno.bairro || '';
+        document.getElementById("responsavel_cidade").value = aluno.cidade || '';
+        // manter campo complementar se existir
+        if (aluno.enderecoCompleto) document.getElementById("responsavel_endereco_complemento").value = aluno.enderecoCompleto;
 
       } catch (error) {
         console.error("Erro ao carregar dados do aluno:", error);
@@ -150,46 +178,85 @@
     async function salvarAlteracoesAluno(id) {
       UI.clearFormErrors("form-alterar-aluno");
 
+      // Validar apenas os campos que fazem parte do payload de update
       const nomeAlunoValid = UI.validateRequired("nome", "nome-error");
       const sobrenomeAlunoValid = UI.validateRequired("sobrenome", "sobrenome-error");
       const documentoAlunoValid = UI.validateRequired("documento", "documento-error");
-      const idadeAlunoValid = UI.validateRequired("idade", "idade-error");
-      const sexoAlunoValid = UI.validateRequired("sexo", "sexo-error");
       const nomeResponsavelValid = UI.validateRequired("responsavel_nome", "responsavel_nome-error");
       const documentoResponsavelValid = UI.validateRequired("responsavel_documento", "responsavel_documento-error");
       const telefoneResponsavelValid = UI.validateRequired("responsavel_telefone", "responsavel_telefone-error");
 
-      if (!nomeAlunoValid || !sobrenomeAlunoValid || !documentoAlunoValid || !idadeAlunoValid || !sexoAlunoValid || !nomeResponsavelValid || !documentoResponsavelValid || !telefoneResponsavelValid) {
-        UI.showMessage("Por favor, preencha todos os campos obrigatórios.", "error");
+      if (!nomeAlunoValid || !sobrenomeAlunoValid || !documentoAlunoValid || !nomeResponsavelValid || !documentoResponsavelValid || !telefoneResponsavelValid) {
+        UI.showMessage("Por favor, preencha todos os campos obrigatórios para edição.", "error");
         return;
       }
 
+      // Montar corpo conforme exemplo do endpoint /aluno/update/{id}
       const dadosAlunoAtualizados = {
         nome: document.getElementById("nome").value.trim(),
         sobrenome: document.getElementById("sobrenome").value.trim(),
         documento: document.getElementById("documento").value.trim(),
-        idade: parseInt(document.getElementById("idade").value),
-        sexo: document.getElementById("sexo").value,
-        responsavel: {
-          nome: document.getElementById("responsavel_nome").value.trim(),
-          documento: document.getElementById("responsavel_documento").value.trim(),
-          email: document.getElementById("responsavel_email").value.trim(),
-          telefone: document.getElementById("responsavel_telefone").value.trim(),
-          rua: document.getElementById("responsavel_rua").value.trim(),
-          numero: document.getElementById("responsavel_numero").value.trim(),
-          bairro: document.getElementById("responsavel_bairro").value.trim(),
-          cidade: document.getElementById("responsavel_cidade").value.trim(),
-          endereco_complemento: document.getElementById("responsavel_endereco_complemento").value.trim()
-        }
+        // o backend espera uma data de nascimento neste campo (ex.: "2004-05-11").
+        data_nascimeto: document.getElementById("data_nascimeto") ? document.getElementById("data_nascimeto").value || null : null,
+
+        responsavel_nome: document.getElementById("responsavel_nome").value.trim(),
+        responsavel_documento: document.getElementById("responsavel_documento").value.trim(),
+        email: document.getElementById("responsavel_email").value.trim(),
+        telefone: document.getElementById("responsavel_telefone").value.trim(),
+        rua: document.getElementById("responsavel_rua").value.trim(),
+        numero: document.getElementById("responsavel_numero").value.trim(),
+        bairro: document.getElementById("responsavel_bairro").value.trim(),
+        cidade: document.getElementById("responsavel_cidade").value.trim()
       };
 
       try {
-        await API.put(`/aluno/${id}`, dadosAlunoAtualizados);
+        // colocar no endpoint /aluno/update/{id}
+        await API.put(`/aluno/update/${id}`, dadosAlunoAtualizados);
         UI.showMessage("Aluno alterado com sucesso!", "success");
-        setTimeout(() => { window.location.href = "alunos.html"; }, 2000);
+
+        // voltar para modo visualização e atualizar campos
+        setFormEditable(false);
+        const btn = document.getElementById('btn-editar-salvar');
+        if (btn) {
+          btn.textContent = 'Editar';
+          btn.classList.remove('editing');
+        }
+
+        // Recarregar os dados atualizados
+        carregarDadosAluno(id);
       } catch (error) {
         console.error("Erro ao salvar alterações do aluno:", error);
         UI.showMessage(error.message || "Erro ao salvar alterações do aluno.", "error");
+      }
+    }
+
+    function setFormEditable(editable) {
+      const form = document.getElementById('form-alterar-aluno');
+      if (!form) return;
+
+      // Lista de campos que podem ser editados quando em modo edição
+      const editableIds = [
+        'nome','sobrenome','documento','data_nascimeto',
+        'responsavel_nome','responsavel_documento','responsavel_email','responsavel_telefone',
+        'responsavel_rua','responsavel_numero','responsavel_bairro','responsavel_cidade'
+      ];
+
+      // Primeiro, desabilitar todos os controles do formulário (garante que nada fora da lista seja editável)
+      const controls = form.querySelectorAll('input, select, textarea, button');
+      controls.forEach(ctrl => {
+        // manter o botão Editar/Salvar e Voltar acionáveis
+        if (ctrl.id === 'btn-editar-salvar') return;
+        if (ctrl.type === 'button' && ctrl.classList.contains('btn-secondary')) return;
+        // desabilitar por padrão
+        ctrl.disabled = true;
+      });
+
+      // Se estiver no modo edição, habilita apenas os campos da lista
+      if (editable) {
+        editableIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.disabled = false;
+        });
       }
     }
   </script>
