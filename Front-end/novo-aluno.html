@@ -270,7 +270,7 @@
               responsavel: parseInt(responsavelId, 10)
             };
 
-            const response = await API.post('http://localhost:8080/api/aluno/register_responsavel', payload);
+            const response = await API.post('/aluno/register_responsavel', payload);
             console.log('Aluno cadastrado com responsável existente:', response);
             UI.showMessage('Aluno cadastrado com responsável existente com sucesso!', 'success');
           } else {

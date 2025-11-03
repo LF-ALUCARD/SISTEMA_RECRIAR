@@ -106,8 +106,12 @@ public class UsuarioService {
 	public AuthResponseDTO login(UsuarioLoginDTO obj) {
 		Usuario user = repositor.findByEmail(obj.getEmail());
 
+		if(!repositor.existsByEmail(obj.getEmail())) {
+			throw new CredenciaisInvalidasException("E-mail inválido");
+		}
+		
 		if (!passwordEncoder.matches(obj.getPassword(), user.getSenha_hash())) {
-			throw new CredenciaisInvalidasException("E-mail ou Senha inválidos");
+			throw new CredenciaisInvalidasException("Senha inválida");
 		}
 
 		String token = gerarToken.gerarToken(user);

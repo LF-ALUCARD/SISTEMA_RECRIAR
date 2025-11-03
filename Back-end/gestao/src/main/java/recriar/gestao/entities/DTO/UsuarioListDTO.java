@@ -8,7 +8,8 @@ import recriar.gestao.entities.enums.Tipo;
 public class UsuarioListDTO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
+	private Long id;
 	private String nome;
 	private Tipo tipo;
 
@@ -16,8 +17,17 @@ public class UsuarioListDTO implements Serializable {
 	}
 
 	public UsuarioListDTO(Usuario entidade) {
+		this.id = entidade.getId();
 		this.nome = entidade.getNome();
 		this.tipo = entidade.getTipo();
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String getNome() {
