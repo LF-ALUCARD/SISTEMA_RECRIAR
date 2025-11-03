@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import recriar.gestao.entities.Professor;
+import recriar.gestao.entities.Usuario;
 import recriar.gestao.entities.DTO.ProfessorInfoDTO;
 import recriar.gestao.entities.DTO.ProfessorListDTO;
 import recriar.gestao.entities.DTO.ProfessorRegisterDTO;
 import recriar.gestao.entities.DTO.ProfessorUpdateDTO;
 import recriar.gestao.repositories.ProfessorRepository;
 import recriar.gestao.repositories.TurmaProfessorRepository;
+import recriar.gestao.repositories.UsuarioRepository;
 import recriar.gestao.service.exceptions.BloqueioDeleteException;
 import recriar.gestao.service.exceptions.CredenciaisInvalidasException;
 import recriar.gestao.service.exceptions.CriacaoNegadaException;
@@ -28,7 +30,10 @@ public class ProfessorService {
 
 	@Autowired
 	private TurmaProfessorRepository repositorProfessor;
-
+	
+	@Autowired
+	private UsuarioRepository repositorUsuario;
+	
 	/*-------------------------------------------------------------------------*/
 	public Professor register(ProfessorRegisterDTO obj) {
 		Professor prof = converter(obj);
@@ -91,7 +96,8 @@ public class ProfessorService {
 	
 	public ProfessorInfoDTO updateProfessor(Long id, ProfessorUpdateDTO entidade) {
 		
-		Professor professor = atualizarDados( id, entidade);
+		Professor professor = atualizarDados( id, entidade);		
+		
 		ProfessorInfoDTO salvar = new ProfessorInfoDTO(professor);
 		
 		return salvar;
@@ -100,11 +106,16 @@ public class ProfessorService {
 	private Professor atualizarDados(Long id, ProfessorUpdateDTO entidade) {
 		
 		Professor professor = repositor.findById(id).orElseThrow(() -> new CredenciaisInvalidasException("Professor não encontrado"));
+		Usuario user = repositorUsuario.findByEmail(professor.getEmail());
+		
+		user.setEmail(professor.getEmail());
+		user.setNome(professor.getNome());
 		
 		professor.setNome(entidade.getNome());
 		professor.setEmail(entidade.getEmail());
 		professor.setDocumento(entidade.getDocumento());
 		
+		repositorUsuario.save(user);
 		return repositor.save(professor);
 	}
 	/*-------------------------------------------------------------------------*/

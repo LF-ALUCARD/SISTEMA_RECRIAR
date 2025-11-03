@@ -26,12 +26,6 @@
                         onclick="window.location.href='novo-usuario.html?type=admin'">
                     Novo Admin
                 </button>
-                <button type="button" 
-                        id="btn-novo-professor" 
-                        class="btn-success" 
-                        onclick="window.location.href='novo-usuario.html?type=professor'">
-                    Novo Professor
-                </button>
             </div>
 
             <div class="table-container">
@@ -40,6 +34,7 @@
                         <tr>
                             <th>Nome</th>
                             <th>Tipo</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-usuarios">
@@ -136,43 +131,32 @@
                 tipoCell.textContent = usuario.tipo || '-';
                 row.appendChild(tipoCell);
 
+                // Coluna Ações: Editar -> alterar-usuario.html, Excluir -> /user/delete/{id}
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'actions';
+                actionsCell.innerHTML = `
+                    <button class="btn-action" onclick="window.location.href='alterar-usuario.html?id=${usuario.id}'" style="padding: 10px 20px; font-size: 16px; margin: 0 6px;">Editar</button>
+                    <button class="btn-action btn-danger" onclick="excluirUsuario(${usuario.id})" style="padding: 10px 20px; font-size: 16px; margin: 0 6px;">Excluir</button>
+                `;
+                row.appendChild(actionsCell);
+
                 tbody.appendChild(row);
             });
         }
 
         function editarUsuario(id, tipo) {
-            // Redireciona para a página de edição apropriada com base no tipo de usuário
-            if (tipo === 'PROFESSOR') {
-                window.location.href = `alterar-professor.html?id=${id}`;
-            } else if (tipo === 'ADMIN') {
-                // Se houver uma página específica para editar admin, redirecionar para lá
-                // Por enquanto, podemos usar a página de alterar-usuario para o email/senha
-                window.location.href = `alterar-usuario.html?id=${id}`;
-            } else {
-                UI.showMessage("Tipo de usuário desconhecido para edição.", "error");
-            }
+            // Agora sempre redireciona para a página genérica de edição de usuário
+            window.location.href = `alterar-usuario.html?id=${id}`;
         }
 
-        async function excluirUsuario(id, tipo) {
+        async function excluirUsuario(id) {
             if (!confirm("Tem certeza de que deseja excluir este usuário?")) {
                 return;
             }
 
             try {
-                let endpoint = '';
-                if (tipo === 'PROFESSOR') {
-                    endpoint = `/professor/${id}`;
-                } else if (tipo === 'ADMIN') {
-                    // Se houver um endpoint para excluir admin
-                    // endpoint = `/admin/${id}`;
-                    UI.showMessage("Exclusão de administradores não implementada via API.", "error");
-                    return;
-                } else {
-                    UI.showMessage("Tipo de usuário desconhecido para exclusão.", "error");
-                    return;
-                }
-
-                await API.delete(endpoint);
+                // Chama o endpoint solicitado para exclusão de usuário
+                await API.delete(`/user/delete/${id}`);
                 UI.showMessage("Usuário excluído com sucesso!", "success");
                 loadUsuarios(); // Recarrega a lista
             } catch (error) {
