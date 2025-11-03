@@ -63,9 +63,9 @@
           <span id="documento-error" class="error-message"></span>
         </div>
         <div class="form-group">
-          <label for="idade">Idade do Aluno</label>
-          <input type="number" id="idade" name="idade" required>
-          <span id="idade-error" class="error-message"></span>
+          <label for="data_nascimento">Data de Nascimento do Aluno</label>
+          <input type="date" id="data_nascimento" name="data_nascimento" required>
+          <span id="data_nascimento-error" class="error-message"></span>
         </div>
         <div class="form-group">
           <label for="sexo">Sexo do Aluno</label>
@@ -164,9 +164,9 @@
           const label = r.closest('.radio-option');
 
           const applyState = () => {
-            // marcar label ativo
+            // remover classe ativa azul
             if (label) {
-              if (r.checked) label.classList.add('active'); else label.classList.remove('active');
+              label.classList.remove('active');
             }
 
             // controlar exibição dos grupos
@@ -199,10 +199,10 @@
         const nomeAlunoValid = UI.validateRequired("nome", "nome-error");
         const sobrenomeAlunoValid = UI.validateRequired("sobrenome", "sobrenome-error");
         const documentoAlunoValid = UI.validateRequired("documento", "documento-error");
-        const idadeAlunoValid = UI.validateRequired("idade", "idade-error");
+        const dataNascimentoValid = UI.validateRequired("data_nascimento", "data_nascimento-error");
         const sexoAlunoValid = UI.validateRequired("sexo", "sexo-error");
 
-        if (!nomeAlunoValid || !sobrenomeAlunoValid || !documentoAlunoValid || !idadeAlunoValid || !sexoAlunoValid) {
+        if (!nomeAlunoValid || !sobrenomeAlunoValid || !documentoAlunoValid || !dataNascimentoValid || !sexoAlunoValid) {
           UI.showMessage("Por favor, preencha todos os campos obrigatórios do aluno.", "error");
           return;
         }
@@ -216,7 +216,7 @@
           nome: document.getElementById("nome").value.trim(),
           sobrenome: document.getElementById("sobrenome").value.trim(),
           documento: document.getElementById("documento").value.trim(),
-          idade: parseInt(document.getElementById("idade").value, 10),
+          data_nascimento: document.getElementById("data_nascimento").value,
           sexo: parseInt(document.getElementById("sexo").value, 10) || document.getElementById("sexo").value,
           data_matricula: new Date().toISOString().split('T')[0]
         };
@@ -250,7 +250,7 @@
             console.log('Aluno e responsável cadastrados:', response);
             UI.showMessage('Aluno cadastrado com responsável novo com sucesso!', 'success');
 
-          } else {
+          } else if (fluxo === 'existente') {
             // fluxo existente
             const select = document.getElementById('responsavel_select');
             const responsavelId = select ? select.value : '';
@@ -259,13 +259,25 @@
               return;
             }
 
-            const payload = Object.assign({}, alunoPayloadBase, {
+            // Monta o corpo conforme especificação
+            const payload = {
+              nome: alunoPayloadBase.nome,
+              sobrenome: alunoPayloadBase.sobrenome,
+              documento: alunoPayloadBase.documento,
+              sexo: alunoPayloadBase.sexo,
+              data_matricula: alunoPayloadBase.data_matricula,
+              data_nascimento: alunoPayloadBase.data_nascimento,
               responsavel: parseInt(responsavelId, 10)
-            });
+            };
 
-            const response = await API.post('/aluno/register_responsavel', payload);
+            const response = await API.post('http://localhost:8080/api/aluno/register_responsavel', payload);
             console.log('Aluno cadastrado com responsável existente:', response);
             UI.showMessage('Aluno cadastrado com responsável existente com sucesso!', 'success');
+          } else {
+            // Sem responsável
+            const response = await API.post('/aluno/register', alunoPayloadBase);
+            console.log('Aluno cadastrado sem responsável:', response);
+            UI.showMessage('Aluno cadastrado sem responsável com sucesso!', 'success');
           }
 
           // Após sucesso, limpar formulário e recarregar lista de responsáveis

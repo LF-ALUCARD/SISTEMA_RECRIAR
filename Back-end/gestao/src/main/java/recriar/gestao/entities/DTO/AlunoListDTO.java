@@ -16,6 +16,7 @@ public class AlunoListDTO implements Serializable {
 	private Integer idade;
 	private Sexo sexo;
 	private LocalDate dataMatricula;
+	private LocalDate dataNascimento;
 
 	public AlunoListDTO() {
 	}
@@ -27,6 +28,7 @@ public class AlunoListDTO implements Serializable {
 		idade = entidade.getIdade();
 		sexo = entidade.getSexo();
 		dataMatricula = entidade.getData_matricula();
+		dataNascimento = entidade.getData_nascimento();
 	}
 
 	public Long getId() {
@@ -75,6 +77,14 @@ public class AlunoListDTO implements Serializable {
 
 	public void setDataMatricula(LocalDate dataMatricul) {
 		this.dataMatricula = dataMatricul;
+	}
+
+	public LocalDate getDataNascimento() {
+		return dataNascimento;
+	}
+
+	public void setDataNascimento(LocalDate dataNascimento) {
+		this.dataNascimento = dataNascimento;
 	}
 
 }

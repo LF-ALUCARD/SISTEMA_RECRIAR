@@ -205,6 +205,12 @@ const Format = {
    */
   date(dateString) {
     if (!dateString) return '-';
+    // Se vier só yyyy-MM-dd, tratar como local
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [ano, mes, dia] = dateString.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+    // Se vier com hora, tratar como UTC
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR');
   },

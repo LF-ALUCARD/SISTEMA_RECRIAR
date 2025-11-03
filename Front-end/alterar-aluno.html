@@ -151,7 +151,9 @@
         document.getElementById("nome").value = aluno.nome || '';
         document.getElementById("sobrenome").value = aluno.sobrenome || '';
         document.getElementById("documento").value = aluno.documento || '';
-        document.getElementById("idade").value = aluno.idade != null ? aluno.idade : '';
+  document.getElementById("idade").value = aluno.idade != null ? aluno.idade : '';
+  // Preencher data de nascimento
+  document.getElementById("data_nascimeto").value = aluno.dataNascimento || '';
         // o endpoint atual não traz 'sexo' no exemplo fornecido; manter campo se existir
         if (aluno.sexo) document.getElementById("sexo").value = aluno.sexo;
 

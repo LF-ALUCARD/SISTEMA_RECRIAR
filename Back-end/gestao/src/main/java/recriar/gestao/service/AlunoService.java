@@ -1,6 +1,7 @@
 package recriar.gestao.service;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,10 +75,11 @@ public class AlunoService {
 		aluno.setNome(dto.getNome());
 		aluno.setSobrenome(dto.getSobrenome());
 		aluno.setDocumento(dto.getDocumento());
-		aluno.setIdade(dto.getIdade());
+		aluno.setIdade(calcularIdade(dto.getData_nascimento()));
 		aluno.setSexo(Sexo.valueof(dto.getSexo()));
 		aluno.setResponsavel(responsavel);
 		aluno.setData_matricula(dto.getData_matricula());
+		aluno.setData_nascimento(dto.getData_nascimento());
 
 		return aluno;
 	}
@@ -111,10 +113,11 @@ public class AlunoService {
 		aluno.setNome(dto.getNome());
 		aluno.setSobrenome(dto.getSobrenome());
 		aluno.setDocumento(dto.getDocumento());
-		aluno.setIdade(dto.getIdade());
+		aluno.setIdade(calcularIdade(dto.getData_nascimento()));
 		aluno.setSexo(Sexo.valueof(dto.getSexo()));
 		aluno.setResponsavel(responsavel);
 		aluno.setData_matricula(dto.getData_matricula());
+		aluno.setData_nascimento(dto.getData_nascimento());
 
 		return aluno;
 	}
@@ -127,6 +130,10 @@ public class AlunoService {
 
 		return listagem;
 	}
+	
+    private int calcularIdade(LocalDate dataNascimento) {
+        return Period.between(dataNascimento, LocalDate.now()).getYears();
+    }
 	/*-------------------------------------------------------------------------*/
 
 	public List<ResponsavelListDTO> findAllResponsavel() {

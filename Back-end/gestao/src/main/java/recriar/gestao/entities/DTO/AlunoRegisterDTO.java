@@ -12,9 +12,9 @@ public class AlunoRegisterDTO implements Serializable {
 	private String nome;
 	private String sobrenome;
 	private String documento;
-	private Integer idade;
 	private Integer sexo;
 	private LocalDate data_matricula;
+	private LocalDate data_nascimento;
 
 	// Dados do responsável
 	private String responsavelNome;
@@ -30,16 +30,16 @@ public class AlunoRegisterDTO implements Serializable {
 		super();
 	}
 
-	public AlunoRegisterDTO(String matricula, String nome, String sobrenome, String documento, Integer idade,
-			Integer sexo, String responsavelNome, String responsavelDocumento, String responsavelEmail,
-			String responsavelTelefone, String rua, String numero, String bairro, String cidade,
-			String enderecoCompleto) {
+	public AlunoRegisterDTO(String matricula, String nome, String sobrenome, String documento,
+			LocalDate data_nascimento, Integer sexo, String responsavelNome, String responsavelDocumento,
+			String responsavelEmail, String responsavelTelefone, String rua, String numero, String bairro,
+			String cidade, String enderecoCompleto) {
 		super();
 		this.matricula = matricula;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
 		this.documento = documento;
-		this.idade = idade;
+		this.data_nascimento = data_nascimento;
 		this.sexo = sexo;
 		this.responsavelNome = responsavelNome;
 		this.responsavelDocumento = responsavelDocumento;
@@ -83,12 +83,12 @@ public class AlunoRegisterDTO implements Serializable {
 		this.documento = documento;
 	}
 
-	public Integer getIdade() {
-		return idade;
+	public LocalDate getData_nascimento() {
+		return data_nascimento;
 	}
 
-	public void setIdade(Integer idade) {
-		this.idade = idade;
+	public void setData_nascimento(LocalDate data_nascimento) {
+		this.data_nascimento = data_nascimento;
 	}
 
 	public Integer getSexo() {

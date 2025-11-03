@@ -1,6 +1,7 @@
 package recriar.gestao.entities.DTO;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 import recriar.gestao.entities.Aluno;
 import recriar.gestao.entities.enums.Sexo;
@@ -16,6 +17,8 @@ public class AlunoInfoDTO implements Serializable {
 	private String documento;
 	private Integer idade;
 	private Sexo sexo;
+	private LocalDate dataMatricula;
+	private LocalDate dataNascimento;
 
 	private Long responsavel_id;
 	private String responsavel_nome;
@@ -39,6 +42,8 @@ public class AlunoInfoDTO implements Serializable {
 		this.documento = entidade.getDocumento();
 		this.idade = entidade.getIdade();
 		this.sexo = entidade.getSexo();
+		this.dataMatricula = entidade.getData_nascimento();
+		this.dataNascimento = entidade.getData_nascimento();
 
 		this.responsavel_id = entidade.getResponsavel().getId();
 		this.responsavel_nome = entidade.getResponsavel().getNome();
@@ -186,6 +191,22 @@ public class AlunoInfoDTO implements Serializable {
 
 	public void setSexo(Sexo sexo) {
 		this.sexo = sexo;
+	}
+
+	public LocalDate getDataMatricula() {
+		return dataMatricula;
+	}
+
+	public void setDataMatricula(LocalDate dataMatricula) {
+		this.dataMatricula = dataMatricula;
+	}
+
+	public LocalDate getDataNascimento() {
+		return dataNascimento;
+	}
+
+	public void setDataNascimento(LocalDate dataNascimento) {
+		this.dataNascimento = dataNascimento;
 	}
 
 }
