@@ -47,9 +47,9 @@ function initializeLayout() {
     <aside class="menu-lateral" role="navigation" aria-label="Menu principal">
       <nav>
         <ul>
-          <li><a href="menu.html" data-page="menu">
+          <li><a href="menu.html" data-page="info-sistema">
             <span class="menu-icon">🏠</span>
-            <span class="menu-text">Início</span>
+            <span class="menu-text">Info do Sistema</span>
           </a></li>
           <li><a href="alunos.html" data-page="alunos">
             <span class="menu-icon">👨‍🎓</span>
@@ -83,7 +83,7 @@ function initializeLayout() {
 
       // Mapeamento de permissões por página (padrão é ADMIN/PROFESSOR)
       const pageRoles = {
-        menu: ['ADMIN', 'PROFESSOR'],
+        'info-sistema': ['ADMIN', 'PROFESSOR'],
         alunos: ['ADMIN'],
         professores: ['ADMIN'],
         // Turmas agora visível apenas para ADMIN
@@ -154,7 +154,7 @@ function getCurrentPageName() {
   
   // Mapear arquivos para nomes de página
   const pageMap = {
-    'menu.html': 'menu',
+    'menu.html': 'info-sistema',
     'alunos.html': 'alunos',
     'professores.html': 'professores',
     'turmas.html': 'turmas',

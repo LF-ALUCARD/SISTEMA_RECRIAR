@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard - Sistema Recriar</title>
+  <title>Informações do Sistema - Sistema Recriar</title>
   <link rel="stylesheet" href="style.css">
   <script src="common.js" defer></script>
   <script src="menu.js" defer></script>
@@ -30,13 +30,32 @@
   <!-- Conteúdo principal -->
   <main>
     <div class="container">
-      <h2 id="dashboard-title">Dashboard</h2>
+      <h2 id="page-title">Informações do Sistema</h2>
       
       <div id="feedback-message" class="feedback-message" style="display:none;"></div>
 
-      <!-- Dashboard Cards e Estatísticas -->
-      <div class="dashboard-cards" id="dashboard-cards">
-        <!-- Cards serão carregados dinamicamente -->
+      <div class="info-content">
+        <h3>Sistema de Gestão Escolar (SGE) - Instituto Recriar</h3>
+        <p>Este projeto representa a interface de usuário (Front-end) de um Sistema de Gestão Escolar, desenvolvido para facilitar a administração de alunos, professores, turmas e aulas em uma instituição de ensino.</p>
+
+        <h4>Ideia Central do Projeto</h4>
+        <p>A ideia principal é fornecer uma plataforma centralizada e intuitiva para que administradores e professores possam gerenciar as atividades acadêmicas e administrativas. O sistema é projetado para ser modular, permitindo a fácil expansão de funcionalidades como relatórios, controle de frequência e gestão de usuários.</p>
+        
+        <h4>Arquitetura Técnica</h4>
+        <p>O Front-end é construído utilizando **HTML5, CSS3 e JavaScript puro**, seguindo o conceito de **Single Page Application (SPA)**, onde a navegação entre as páginas é simulada pelo carregamento de conteúdo dinâmico (embora neste caso, a navegação seja feita entre arquivos HTML separados, a lógica de autenticação e comunicação com a API é centralizada).</p>
+        
+        <p>A comunicação com o Back-end é realizada através de requisições **RESTful** (GET, POST, PUT, DELETE) para a URL base: <code>http://137.131.197.181:8080/api</code>. A autenticação é baseada em **Token Bearer** armazenado no <code>sessionStorage</code>.</p>
+
+        <h4>Módulos Principais</h4>
+        <ul>
+            <li>**Gestão de Usuários:** Controle de acesso e permissões (Administradores e Professores).</li>
+            <li>**Gestão de Alunos:** Cadastro, busca, edição e exclusão de informações dos estudantes.</li>
+            <li>**Gestão de Professores:** Cadastro e administração do corpo docente.</li>
+            <li>**Gestão de Turmas:** Criação, alteração e associação de alunos e professores às turmas.</li>
+            <li>**Gestão de Aulas:** Registro e acompanhamento das aulas.</li>
+        </ul>
+
+        <p>O sistema visa a eficiência e a organização dos dados escolares, proporcionando uma experiência de usuário limpa e responsiva.</p>
       </div>
     </div>
   </main>
@@ -45,117 +64,13 @@
     document.addEventListener("DOMContentLoaded", async function() {
       if (!Auth.requireAuth()) return;
 
-      const userType = sessionStorage.getItem("user_type");
-      const usernameDisplay = document.getElementById("username-display");
       const logoutBtn = document.getElementById("logout-btn");
-
       if (logoutBtn) {
         logoutBtn.addEventListener("click", Auth.logout);
       }
-
-      // O elemento de saudação é definido globalmente em common.js (inicialização comum)
-
-      renderMenu(userType);
-      loadDashboard(userType);
+      
+      // A lógica de renderização do menu está em menu.js
     });
-
-    function renderMenu(userType) {
-      const menuList = document.getElementById("menu-list");
-      menuList.innerHTML = ''; // Limpa o menu existente
-
-      const menuItems = [
-        { text: "Dashboard", href: "menu.html", roles: ["ADMIN"] },
-        { text: "Alunos", href: "alunos.html", roles: ["ADMIN"] },
-        { text: "Professores", href: "professores.html", roles: ["ADMIN"] },
-        { text: "Turmas", href: "turmas.html", roles: ["ADMIN"] },
-        { text: "Administração", href: "admin.html", roles: ["ADMIN"] }
-      ];
-
-      menuItems.forEach(item => {
-        if (item.roles.includes(userType)) {
-          const li = document.createElement("li");
-          const a = document.createElement("a");
-          a.href = item.href;
-          a.textContent = item.text;
-          if (window.location.pathname.includes(item.href)) {
-            a.classList.add("active");
-          }
-          li.appendChild(a);
-          menuList.appendChild(li);
-        }
-      });
-    }
-
-    async function loadDashboard(userType) {
-      const dashboardCardsContainer = document.getElementById("dashboard-cards");
-      const dashboardTitle = document.getElementById("dashboard-title");
-      dashboardCardsContainer.innerHTML = '';
-
-      let endpoint = "";
-      if (userType === "ADMIN") {
-        endpoint = "/dashboard/admin";
-        dashboardTitle.textContent = "Dashboard - Administrador";
-      } else if (userType === "PROFESSOR") {
-        endpoint = "/dashboard/professor";
-        dashboardTitle.textContent = "Dashboard - Professor";
-      } else {
-        UI.showMessage("Tipo de usuário desconhecido para o dashboard.", "error");
-        return;
-      }
-
-      try {
-        const stats = await API.get(endpoint);
-        renderDashboardCards(stats, userType);
-      } catch (error) {
-        console.error("Erro ao carregar dados do dashboard:", error);
-        UI.showMessage(error.message || "Não foi possível carregar os dados do dashboard.", "error");
-      }
-    }
-
-    function renderDashboardCards(stats, userType) {
-      const dashboardCardsContainer = document.getElementById("dashboard-cards");
-      dashboardCardsContainer.innerHTML = ''; // Limpa cards existentes
-
-      if (userType === "ADMIN") {
-        dashboardCardsContainer.innerHTML = `
-          <div class="card">
-            <h3>Total de Alunos</h3>
-            <p id="total-alunos" class="stat-number">${stats.total_alunos || 0}</p>
-          </div>
-          <div class="card">
-            <h3>Total de Professores</h3>
-            <p id="total-professores" class="stat-number">${stats.total_professores || 0}</p>
-          </div>
-          <div class="card">
-            <h3>Total de Turmas</h3>
-            <p id="total-turmas" class="stat-number">${stats.total_turmas || 0}</p>
-          </div>
-          <div class="card">
-            <h3>Chamadas Realizadas Hoje</h3>
-            <p id="chamadas-hoje" class="stat-number">${stats.chamadas_hoje || 0}</p>
-          </div>
-        `;
-      } else if (userType === "PROFESSOR") {
-        dashboardCardsContainer.innerHTML = `
-          <div class="card">
-            <h3>Minhas Turmas</h3>
-            <p id="minhas-turmas" class="stat-number">${stats.minhas_turmas || 0}</p>
-          </div>
-          <div class="card">
-            <h3>Meus Alunos</h3>
-            <p id="meus-alunos" class="stat-number">${stats.meus_alunos || 0}</p>
-          </div>
-          <div class="card">
-            <h3>Chamadas Pendentes</h3>
-            <p id="chamadas-pendentes" class="stat-number">${stats.chamadas_pendentes || 0}</p>
-          </div>
-          <div class="card">
-            <h3>Próxima Aula</h3>
-            <p id="proxima-aula" class="stat-number">${stats.proxima_aula || 'N/A'}</p>
-          </div>
-        `;
-      }
-    }
   </script>
 </body>
 </html>
