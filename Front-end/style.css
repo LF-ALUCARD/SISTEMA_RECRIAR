@@ -969,6 +969,81 @@ a:focus {
   font-weight: 600; /* Deixa o texto mais em destaque */
 }
 
+.info-content {
+  /* Fundo e Contorno */
+  background-color: var(--cor-fundo-card); /* Fundo branco para contraste */
+  padding: 30px; /* Espaçamento interno generoso */
+  border-radius: 8px; /* Cantos levemente arredondados */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Sombra suave para efeito de "card" */
+}
+
+.info-content h3 {
+  /* Título Principal da Seção */
+  font-size: 1.5rem;
+  color: var(--cor-primaria); /* Cor primária (azul) para destaque */
+  border-bottom: 2px solid var(--cor-borda); /* Linha divisória sutil */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.info-content h4 {
+  /* Subtítulos */
+  font-size: 1.2rem;
+  color: var(--cor-secundaria); /* Cor secundária (cinza) para hierarquia */
+  margin-top: 25px;
+  margin-bottom: 10px;
+}
+
+.info-content p {
+  /* Parágrafos */
+  margin-bottom: 15px;
+  text-align: justify; /* Justifica o texto para um visual mais formal */
+}
+
+.info-content strong {
+  /* Destaque de Texto */
+  color: var(--cor-primaria);
+  font-weight: 600;
+}
+
+.info-content code {
+  /* Estilo para Código Inline */
+  background-color: var(--cor-fundo); /* Fundo claro para o código */
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: Consolas, monospace;
+  color: #c82333; /* Cor de destaque para o código */
+}
+
+/* Lista de Módulos (ul) */
+.info-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.info-content ul li {
+  padding: 8px 0;
+  border-bottom: 1px dotted var(--cor-borda); /* Linha pontilhada para separação */
+  display: flex;
+  align-items: center;
+}
+
+.info-content ul li::before {
+  /* Marcador de Lista Personalizado */
+  content: '•'; /* Ponto de lista elegante */
+  color: var(--cor-primaria);
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+  font-size: 1.2em;
+}
+
+.info-content ul li:last-child {
+  border-bottom: none;
+}
+
 /* Se for necessário esconder o input de rádio para fazer um estilo totalmente customizado, usaríamos:
 .radio-option input[type="radio"] {
     position: absolute;

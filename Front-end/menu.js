@@ -117,11 +117,16 @@ function initializeLayout() {
  * Atualiza a saudação do usuário no cabeçalho
  */
 function updateUserGreeting() {
-  const userGreeting = document.getElementById('user-greeting');
+  const userGreeting = document.getElementById('username-display'); // ID ajustado
   if (userGreeting && window.Auth) {
     const userInfo = Auth.getUserInfo();
-    if (userInfo.username) {
+    
+    if (userInfo && userInfo.username) {
       userGreeting.textContent = `Olá, ${userInfo.username}`;
+    } else if (userInfo && userInfo.nome) { // Adicionado fallback para 'nome'
+      userGreeting.textContent = `Olá, ${userInfo.nome}`;
+    } else {
+      userGreeting.textContent = 'Olá, Usuário';
     }
   }
 }
