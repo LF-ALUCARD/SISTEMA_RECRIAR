@@ -13,17 +13,45 @@ const CONFIG = {
 // Utilitários de autenticação
 const Auth = {
   /**
+   * Realiza o login do usuário e salva dados na sessão
+   */
+  async login(email, senha) {
+    try {
+      const response = await fetch(`${CONFIG.API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha no login. Verifique suas credenciais.');
+      }
+
+      const data = await response.json();
+
+      // Salvar dados no sessionStorage
+      sessionStorage.setItem('auth_token', data.token);
+      sessionStorage.setItem('user_id', data.usuario.id);
+      sessionStorage.setItem('user_name', data.usuario.nome); // O nome já está sendo salvo
+      sessionStorage.setItem('user_type', data.usuario.tipo);
+      sessionStorage.setItem('login_timestamp', new Date().toISOString());
+
+      // Redirecionar para o menu principal
+      window.location.href = 'menu.html';
+    } catch (error) {
+      console.error('Erro no login:', error);
+      alert('Erro ao efetuar login. Tente novamente.');
+    }
+  },
+
+  /**
    * Verifica se o usuário está logado
    */
   isLoggedIn() {
     const token = sessionStorage.getItem('auth_token');
     const timestamp = sessionStorage.getItem('login_timestamp');
+    if (!token || !timestamp) return false;
 
-    if (!token || !timestamp) {
-      return false;
-    }
-
-    // Verificar se a sessão não expirou
     const loginTime = new Date(timestamp);
     const now = new Date();
     const timeDiff = now.getTime() - loginTime.getTime();
@@ -42,6 +70,8 @@ const Auth = {
   getUserInfo() {
     return {
       token: sessionStorage.getItem('auth_token'),
+      userId: sessionStorage.getItem('user_id'),
+      userName: sessionStorage.getItem('user_name'),
       userType: sessionStorage.getItem('user_type'),
       loginTime: sessionStorage.getItem('login_timestamp')
     };
@@ -51,9 +81,7 @@ const Auth = {
    * Realiza logout do usuário
    */
   logout() {
-    sessionStorage.removeItem('auth_token');
-    sessionStorage.removeItem('user_type');
-    sessionStorage.removeItem('login_timestamp');
+    sessionStorage.clear();
     window.location.href = 'index.html';
   },
 
@@ -66,9 +94,14 @@ const Auth = {
       window.location.href = 'index.html';
       return false;
     }
+
+    // REMOVENDO: A lógica de atualização    // A saudação será atualizada pelo menu.js, que é o responsável pelo layout.
+    // A lógica de autenticação deve apenas garantir que o usuário está logado. }
+
     return true;
   }
 };
+
 
 // Utilitários de UI
 const UI = {
@@ -341,7 +374,13 @@ const API = {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let bodyText = '';
+        try {
+          bodyText = await response.text();
+        } catch (e) {
+          bodyText = '';
+        }
+        throw new Error(`HTTP error! status: ${response.status}${bodyText ? ' - ' + bodyText : ''}`);
       }
 
       if (response.status === 204) return null;
@@ -362,18 +401,21 @@ const API = {
       const response = await fetch(`${CONFIG.API_BASE_URL}${endpoint}`, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionStorage.getItem('auth_token') || ''}`
         }
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let bodyText = '';
+        try {
+          bodyText = await response.text();
+        } catch (e) {
+          bodyText = '';
+        }
+        throw new Error(`HTTP error! status: ${response.status}${bodyText ? ' - ' + bodyText : ''}`);
       }
 
-      if (response.status === 204) return null;
-      const ct = response.headers.get('content-type') || '';
-      if (ct.includes('application/json')) return await response.json();
+      // DELETE geralmente retorna 204 No Content
       return null;
     } catch (error) {
       console.error('API DELETE Error:', error);
@@ -382,142 +424,157 @@ const API = {
   }
 };
 
-// Utilitários de tabela
+// Utilitários de Tabela
 const Table = {
   /**
-   * Cria linha de tabela com dados
+   * Renderiza uma tabela a partir de um array de objetos
    */
-  createRow(data, columns, actions = []) {
-    const row = document.createElement('tr');
+  render(tableId, data, columns, actions = []) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
 
-    // Adicionar colunas de dados
-    columns.forEach(column => {
-      const cell = document.createElement('td');
+    // Limpa o conteúdo anterior
+    table.innerHTML = '';
 
-      if (typeof column === 'string') {
-        cell.textContent = data[column] || '-';
-      } else if (typeof column === 'object') {
-        if (column.format) {
-          cell.textContent = column.format(data[column.field]);
-        } else {
-          cell.textContent = data[column.field] || '-';
-        }
-      }
-
-      row.appendChild(cell);
+    // Cria o cabeçalho
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    columns.forEach(col => {
+      const th = document.createElement('th');
+      th.textContent = col.header;
+      headerRow.appendChild(th);
     });
-
-    // Adicionar coluna de ações se houver
     if (actions.length > 0) {
-      const actionsCell = document.createElement('td');
-      actionsCell.className = 'actions';
+      const thActions = document.createElement('th');
+      thActions.textContent = 'Ações';
+      headerRow.appendChild(thActions);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-      actions.forEach(action => {
-        const button = document.createElement('button');
-        button.textContent = action.label;
-        button.className = action.class || '';
-        button.onclick = () => action.handler(data);
-        actionsCell.appendChild(button);
+    // Cria o corpo da tabela
+    const tbody = document.createElement('tbody');
+    data.forEach(item => {
+      const row = document.createElement('tr');
+      
+      columns.forEach(col => {
+        const td = document.createElement('td');
+        let value = item[col.field];
+        
+        // Aplica formatação se houver
+        if (col.format) {
+          if (col.format === 'date') {
+            value = Format.date(value);
+          } else if (col.format === 'datetime') {
+            value = Format.datetime(value);
+          } else if (col.format === 'capitalize') {
+            value = Format.capitalize(value);
+          }
+          // Adicione mais formatos conforme necessário
+        }
+        
+        td.textContent = value || '-';
+        row.appendChild(td);
       });
 
-      row.appendChild(actionsCell);
-    }
+      // Adiciona coluna de ações
+      if (actions.length > 0) {
+        const tdActions = document.createElement('td');
+        actions.forEach(action => {
+          const button = document.createElement('button');
+          button.textContent = action.label;
+          button.className = `btn btn-sm btn-${action.style || 'primary'}`;
+          button.addEventListener('click', () => action.handler(item));
+          tdActions.appendChild(button);
+        });
+        row.appendChild(tdActions);
+      }
 
-    return row;
-  },
-
-  /**
-   * Limpa corpo da tabela
-   */
-  clearBody(tableId) {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-
-    const tbody = table.querySelector('tbody');
-    if (tbody) {
-      tbody.innerHTML = '';
-    }
-  },
-
-  /**
-   * Adiciona linha à tabela
-   */
-  addRow(tableId, row) {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-
-    let tbody = table.querySelector('tbody');
-    if (!tbody) {
-      tbody = document.createElement('tbody');
-      table.appendChild(tbody);
-    }
-
-    tbody.appendChild(row);
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
   }
 };
 
-// Inicialização comum para todas as páginas
-document.addEventListener('DOMContentLoaded', async function() {
-  // Verificar se não é a página de login
-  if (!window.location.pathname.includes('index.html') &&
-      !window.location.pathname.endsWith('/')) {
+// Utilitários de Paginação
+const Pagination = {
+  /**
+   * Renderiza os controles de paginação
+   */
+  render(paginationId, totalPages, currentPage, onPageChange) {
+    const container = document.getElementById(paginationId);
+    if (!container) return;
 
-    // Verificar autenticação para páginas protegidas
-    if (!Auth.isLoggedIn()) {
-      Auth.logout();
-      return;
-    }
+    container.innerHTML = '';
+    
+    const ul = document.createElement('ul');
+    ul.className = 'pagination';
 
-    // Atualizar informações do usuário se existir elemento
-    const usernameDisplay = document.getElementById('username-display');
-    const loginTimeDisplay = document.getElementById('login-time');
-
-    if (usernameDisplay || loginTimeDisplay) {
-      const userInfo = Auth.getUserInfo();
-
-      if (usernameDisplay) {
-        try {
-          // Preferir endpoint com id: /user/info/{id} quando tivermos o id em sessionStorage
-          const storedId = sessionStorage.getItem('user_id');
-          let accountInfo = null;
-          if (storedId) {
-            accountInfo = await API.get(`/user/info/${encodeURIComponent(storedId)}`);
-          } else {
-            // fallback para endpoint antigo caso não haja id
-            accountInfo = await API.get('/user/account-info');
-          }
-
-          // Prefer 'nome' then 'name' then 'email'. Mostrar apenas o primeiro nome na saudação.
-          const raw = accountInfo && (accountInfo.nome || accountInfo.name || accountInfo.email) ? (accountInfo.nome || accountInfo.name || accountInfo.email) : 'Usuário';
-          const first = String(raw).split(' ')[0];
-          usernameDisplay.textContent = `Olá, ${first}`;
-        } catch (error) {
-          console.error('Erro ao buscar informações da conta:', error);
-          usernameDisplay.textContent = 'Olá, Usuário';
-        }
-      }
-
-      if (loginTimeDisplay && userInfo.loginTime) {
-        const loginDate = new Date(userInfo.loginTime);
-        loginTimeDisplay.textContent = Format.datetime(loginDate);
-      }
-    }
-  }
-
-  // Configurar logout automático em links de sair
-  const logoutLinks = document.querySelectorAll('a[href="index.html"]');
-  logoutLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
+    // Botão Anterior
+    const liPrev = document.createElement('li');
+    liPrev.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    const aPrev = document.createElement('a');
+    aPrev.className = 'page-link';
+    aPrev.href = '#';
+    aPrev.textContent = 'Anterior';
+    aPrev.addEventListener('click', (e) => {
       e.preventDefault();
-      Auth.logout();
+      if (currentPage > 1) {
+        onPageChange(currentPage - 1);
+      }
     });
-  });
-});
+    liPrev.appendChild(aPrev);
+    ul.appendChild(liPrev);
 
-// Exportar para uso global
+    // Links de Páginas
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage + 1 < maxPagesToShow) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+      const a = document.createElement('a');
+      a.className = 'page-link';
+      a.href = '#';
+      a.textContent = i;
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        onPageChange(i);
+      });
+      li.appendChild(a);
+      ul.appendChild(li);
+    }
+
+    // Botão Próximo
+    const liNext = document.createElement('li');
+    liNext.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    const aNext = document.createElement('a');
+    aNext.className = 'page-link';
+    aNext.href = '#';
+    aNext.textContent = 'Próximo';
+    aNext.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        onPageChange(currentPage + 1);
+      }
+    });
+    liNext.appendChild(aNext);
+    ul.appendChild(liNext);
+
+    container.appendChild(ul);
+  }
+};
+
+// Exporta os módulos para uso global
 window.CONFIG = CONFIG;
 window.Auth = Auth;
 window.UI = UI;
 window.Format = Format;
 window.API = API;
 window.Table = Table;
+window.Pagination = Pagination;

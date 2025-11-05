@@ -26,22 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeLayout() {
   const layoutHTML = `
     <!-- Barra superior -->
-    <header class="top-bar" role="banner">
-      <div class="empresa-logo">
-        <h1>Instituto Recriar</h1>
+    <div class="top-bar">
+      <div class="empresa-logo">Instituto Recriar</div>
+      <div class="user-info">
+        <a href="#" id="logout-btn">Sair</a>
       </div>
-      <nav class="top-nav">
-        <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Abrir menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <div class="user-actions">
-          <span id="user-greeting">Olá, Usuário</span>
-          <a href="index.html" class="logout-btn" title="Sair do sistema">Sair</a>
-        </div>
-      </nav>
-    </header>
+    </div>
 
     <!-- Menu lateral -->
     <aside class="menu-lateral" role="navigation" aria-label="Menu principal">
@@ -186,20 +176,13 @@ function getCurrentPageName() {
  */
 function setupMenuEvents() {
   // Evento de logout
-  const logoutBtn = document.querySelector('.logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      if (confirm('Tem certeza que deseja sair do sistema?')) {
-        if (window.Auth) {
-          Auth.logout();
-        } else {
-          window.location.href = 'index.html';
-        }
-      }
-    });
-  }
+const logoutBtn = document.getElementById("logout-btn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    Auth.logout();
+  });
+}
   
   // Eventos de navegação com feedback visual
   const menuLinks = document.querySelectorAll('.menu-lateral a');
