@@ -6,7 +6,7 @@
 // Configurações globais
 const CONFIG = {
   SESSION_TIMEOUT: 30 * 60 * 1000, // 30 minutos em millisegundos
-  API_BASE_URL: 'http://localhost:8080/api', // Base URL para APIs (será configurada pelo backend)
+  API_BASE_URL: 'https://recriar123.duckdns.org/api', // Base URL para APIs (será configurada pelo backend)
   ITEMS_PER_PAGE: 10
 };
 
