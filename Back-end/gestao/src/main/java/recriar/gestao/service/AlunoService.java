@@ -34,8 +34,8 @@ public class AlunoService {
 	/*-------------------------------------------------------------------------*/
 	public Aluno criarAlunoComResponsavel(AlunoRegisterDTO obj) {
 
-		if (repositorResponsavel.existsByDocumento(obj.getDocumento())) {
-			throw new CriacaoNegadaException("Documento existemte");
+		if (repositor.existsByDocumento(obj.getDocumento())) {
+			throw new CriacaoNegadaException("Documento do aluno existemte");
 		}
 
 		Responsavel responsavel = converterResponsavel(obj);
@@ -53,6 +53,10 @@ public class AlunoService {
 	}
 
 	private Responsavel converterResponsavel(AlunoRegisterDTO obj) {
+		
+		if(repositorResponsavel.existsByDocumento(obj.getResponsavelDocumento())) {
+			throw new CriacaoNegadaException("Documento do responsavel existente");
+		}
 
 		Responsavel entidade = new Responsavel();
 
@@ -87,8 +91,8 @@ public class AlunoService {
 
 	public Aluno criarAlunoComResponsavel(AlunoRegisterResponseDTO obj) {
 
-		if (repositorResponsavel.existsByDocumento(obj.getDocumento())) {
-			throw new CriacaoNegadaException("Documento existente");
+		if (repositor.existsByDocumento(obj.getDocumento())) {
+			throw new CriacaoNegadaException("Documento do aluno existente");
 		}
 
 		Aluno entidade = converterAluno(obj);
@@ -130,10 +134,10 @@ public class AlunoService {
 
 		return listagem;
 	}
-	
-    private int calcularIdade(LocalDate dataNascimento) {
-        return Period.between(dataNascimento, LocalDate.now()).getYears();
-    }
+
+	private int calcularIdade(LocalDate dataNascimento) {
+		return Period.between(dataNascimento, LocalDate.now()).getYears();
+	}
 	/*-------------------------------------------------------------------------*/
 
 	public List<ResponsavelListDTO> findAllResponsavel() {
@@ -167,9 +171,9 @@ public class AlunoService {
 
 		Aluno aluno = atualizarAluno(id, entidade);
 		atualizarResponsavel(aluno.getResponsavel().getId(), entidade);
-		
+
 		AlunoInfoDTO salvar = new AlunoInfoDTO(aluno);
-		
+
 		return salvar;
 	}
 
@@ -189,16 +193,17 @@ public class AlunoService {
 
 		repositorResponsavel.save(entidade);
 	}
-	
+
 	private Aluno atualizarAluno(Long id, AlunoUpdateDTO obj) {
-		
-		Aluno entidade = repositor.findById(id).orElseThrow(() -> new CredenciaisInvalidasException("Usuário não existente"));
-		
+
+		Aluno entidade = repositor.findById(id)
+				.orElseThrow(() -> new CredenciaisInvalidasException("Usuário não existente"));
+
 		entidade.setNome(obj.getNome());
 		entidade.setSobrenome(obj.getSobrenome());
 		entidade.setDocumento(obj.getDocumento());
 		entidade.setData_nascimento(obj.getData_nascimeto());
-		
+
 		return repositor.save(entidade);
 	}
 }

@@ -7,5 +7,6 @@ import recriar.gestao.entities.Aluno;
 public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 	Aluno findByNome(String nome);
 
-	boolean existsByNome(String email);
+	boolean existsByNome(String nome);
+	boolean existsByDocumento(String documento);
 }
