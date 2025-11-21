@@ -57,10 +57,6 @@ function initializeLayout() {
             <span class="menu-icon">👥</span>
             <span class="menu-text">Responsáveis</span>
           </a></li>
-          <li><a href="relatorios.html" data-page="relatorios">
-            <span class="menu-icon">📊</span>
-            <span class="menu-text">Relatórios</span>
-          </a></li>
           <li><a href="admin.html" data-page="admin">
             <span class="menu-icon">⚙️</span>
             <span class="menu-text">Admin</span>
@@ -87,7 +83,6 @@ function initializeLayout() {
         // Turmas agora visível apenas para ADMIN
         turmas: ['ADMIN'],
         responsaveis: ['ADMIN'],
-        relatorios: ['ADMIN', 'PROFESSOR'],
         admin: ['ADMIN']
       };
 
@@ -176,8 +171,7 @@ function getCurrentPageName() {
     'novo-usuario.html': 'admin',
     'alterar-usuario.html': 'admin',
     'excluir-usuario.html': 'admin',
-    'responsaveis.html': 'responsaveis',
-    'relatorios.html': 'relatorios'
+    'responsaveis.html': 'responsaveis'
   };
   
   return pageMap[filename] || 'menu';

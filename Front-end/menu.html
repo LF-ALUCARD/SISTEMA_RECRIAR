@@ -7,71 +7,77 @@
   <link rel="stylesheet" href="style.css">
   <script src="common.js" defer></script>
   <script src="menu.js" defer></script>
-  <link rel="shortcut icon" href="logo.png" type="image/x-icon">
-</head>
-<body>
-
-
-  <!-- Barra superior -->
-  <div class="top-bar">
-    <div class="empresa-logo">Instituto Recriar</div>
-    <div class="user-info">
-      <a href="#" id="logout-btn">Sair</a>
-    </div>
-  </div>
-
-  <!-- Menu lateral -->
-  <div class="menu-lateral" id="menu-container">
-    <nav>
-      <ul id="menu-list">
-        <!-- Itens do menu serão gerados dinamicamente via JavaScript -->
-      </ul>
-    </nav>
-  </div>
-
-  <!-- Conteúdo principal -->
-  <main>
-    <div class="container">
-      <h2 id="page-title">Informações do Sistema</h2>
-      
-      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
-
-      <div class="info-content">
-        <h3>Sistema de Gestão Escolar (SGE) - Instituto Recriar</h3>
-        <p>Este projeto representa a interface de usuário (Front-end) de um Sistema de Gestão Escolar, desenvolvido para facilitar a administração de alunos, professores, turmas e aulas em uma instituição de ensino.</p>
-
-        <h4>Ideia Central do Projeto</h4>
-        <p>A ideia principal é fornecer uma plataforma centralizada e intuitiva para que administradores e professores possam gerenciar as atividades acadêmicas e administrativas. O sistema é projetado para ser modular, permitindo a fácil expansão de funcionalidades como relatórios, controle de frequência e gestão de usuários.</p>
-        
-        <h4>Arquitetura Técnica</h4>
-        <p>O Front-end é construído utilizando <strong>HTML5, CSS3 e JavaScript puro</strong>, seguindo o conceito de <strong>Single Page Application (SPA)</strong>, onde a navegação entre as páginas é simulada pelo carregamento de conteúdo dinâmico (embora neste caso, a navegação seja feita entre arquivos HTML separados, a lógica de autenticação e comunicação com a API é centralizada).</p>
-        
-        <p>A comunicação com o Back-end é realizada através de requisições <strong>RESTful</strong> (GET, POST, PUT, DELETE) para a URL base: <code>http://137.131.197.181:8080/api</code>. A autenticação é baseada em <strong>Token Bearer</strong> armazenado no <code>sessionStorage</code>.</p>
-
-        <h4>Módulos Principais</h4>
-        <ul>
-            <li><strong>Gestão de Usuários:</strong> Controle de acesso e permissões (Administradores).</li>
-            <li><strong>Gestão de Alunos:</strong> Cadastro, busca, edição e exclusão de informações dos estudantes.</li>
-            <li><strong>Gestão de Professores:</strong> Cadastro e administração do corpo docente.</li>
-            <li><strong>Gestão de Turmas:</strong> Criação, alteração e associação de alunos e professores às turmas.</li>
-        </ul>
-
-        <p>O sistema visa a eficiência e a organização dos dados escolares, proporcionando uma experiência de usuário limpa e responsiva.</p>
-      </div>
-    </div>
-  </main>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", async function() {
-      if (!Auth.requireAuth()) return;
-
-      const logoutBtn = document.getElementById("logout-btn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", Auth.logout);
-      }
-      
-      // A lógica de renderização do menu está em menu.js
-    });
-  </script>
-</body>
+	  <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+	</head>
+	<body>
+	
+	  <div id="menu-container"></div>
+	
+	  <!-- Conteúdo principal -->
+	  <main>
+	    <div class="container">
+	      <h2 id="page-title">Informações do Sistema</h2>
+	      
+	      <div id="feedback-message" class="feedback-message" style="display:none;"></div>
+	
+	      <div class="info-content">
+	        
+	        <!-- Card 1: Visão Geral -->
+	        <div class="info-card">
+	          <h3>Visão Geral do Projeto</h3>
+	          <p>O **Sistema de Gestão Escolar (SGE) - Instituto Recriar** é a interface de usuário (Front-end) desenvolvida para facilitar a administração de alunos, professores, turmas e responsáveis na instituição.</p>
+	          <p>O objetivo é fornecer uma plataforma centralizada e intuitiva para a gestão eficiente das atividades acadêmicas e administrativas.</p>
+	        </div>
+	
+	        <!-- Card 2: Arquitetura Técnica -->
+	        <div class="info-card">
+	          <h3>Arquitetura Técnica</h3>
+	          <p>O Front-end é construído com **HTML5, CSS3 e JavaScript puro**, seguindo um design modular e responsivo.</p>
+	          <h4>Comunicação com o Back-end</h4>
+	          <p>A comunicação é feita via requisições **RESTful** (GET, POST, PUT, DELETE) para a URL base:</p>
+	          <p><code>${CONFIG.API_BASE_URL}</code></p>
+	          <p>A autenticação é baseada em **Token Bearer** armazenado no <code>sessionStorage</code>.</p>
+	        </div>
+	
+	        <!-- Card 3: Módulos Principais -->
+	        <div class="info-card">
+	          <h3>Módulos Principais</h3>
+	          <ul>
+	              <li>**Gestão de Usuários:** Controle de acesso e permissões (Administradores).</li>
+	              <li>**Gestão de Alunos:** Cadastro, busca, edição e exclusão de estudantes.</li>
+	              <li>**Gestão de Professores:** Cadastro e administração do corpo docente.</li>
+	              <li>**Gestão de Turmas:** Criação, alteração e associação de alunos e professores.</li>
+	              <li>**Gestão de Responsáveis:** Listagem e exclusão de responsáveis pelos alunos.</li>
+	          </ul>
+	        </div>
+	
+	        <!-- Card 4: Próximos Passos -->
+	        <div class="info-card">
+	          <h3>Próximos Passos Sugeridos</h3>
+	          <p>Para expandir o sistema, sugerimos:</p>
+	          <ul>
+	              <li>Implementar páginas de cadastro/edição para Responsáveis.</li>
+	              <li>Adicionar funcionalidades de Relatórios e controle de Frequência.</li>
+	              <li>Melhorar a gestão de usuários com mais níveis de acesso.</li>
+	          </ul>
+	        </div>
+	
+	      </div>
+	    </div>
+	  </main>
+	
+	  <script>
+	    document.addEventListener("DOMContentLoaded", async function() {
+	      if (!Auth.requireAuth()) return;
+	
+	      // A lógica de renderização do menu está em menu.js
+	      
+	      // Exibir a URL da API no card de Arquitetura Técnica
+	      const apiBaseUrlElement = document.querySelector('.info-card code');
+	      if (apiBaseUrlElement) {
+	        apiBaseUrlElement.textContent = CONFIG.API_BASE_URL;
+	      }
+	    });
+	  </script>
+	</body>
 </html>

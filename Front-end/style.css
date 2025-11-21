@@ -119,6 +119,59 @@ body:not(.login-page) {
   display: block;
 }
 
+/* Estilos para a página Info do Sistema */
+.info-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.info-card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-left: 5px solid #3498db;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.info-card h3 {
+  color: #2c3e50;
+  margin-top: 0;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.info-card h4 {
+  color: #3498db;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.info-card p, .info-card ul {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.info-card ul {
+  padding-left: 20px;
+}
+
+.info-card code {
+  background: #ecf0f1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  color: #c0392b;
+}
+
 body:not(.login-page) main {
   margin-top: 60px;
   margin-left: 250px;

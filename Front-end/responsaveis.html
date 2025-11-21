@@ -57,7 +57,6 @@
                 <table class="table" id="tabela-responsaveis">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Nome</th>
                             <th>E-mail</th>
                             <th>Telefone</th>
@@ -123,7 +122,6 @@
             responsaveis.forEach(responsavel => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${responsavel.id || ''}</td>
                     <td>${responsavel.nome || ''}</td>
                     <td>${responsavel['e-mail'] || responsavel.email || ''}</td>
                     <td>${Format.phone(responsavel.telefone)}</td>

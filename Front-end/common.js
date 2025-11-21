@@ -508,6 +508,16 @@ document.addEventListener('DOMContentLoaded', () => {
   FaviconManager.set('logo.png');
 });
 
+// Utilitário para debounce
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
 // Exporta para uso global
 window.CONFIG = CONFIG;
 window.Auth = Auth;
@@ -517,3 +527,5 @@ window.API = API;
 window.Table = Table;
 window.Pagination = Pagination;
 window.FaviconManager = FaviconManager;
+window.debounce = debounce;
+window.debounce = debounce;
