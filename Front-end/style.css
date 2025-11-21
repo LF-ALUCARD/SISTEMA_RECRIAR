@@ -126,7 +126,14 @@ body:not(.login-page) main {
   width: calc(100% - 250px);
   min-height: calc(100vh - 60px);
   opacity: 1;
-  transition: opacity 0.15s ease-in-out;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transform: translateY(0);
+}
+
+/* Estado de fade-out para transições de página */
+body:not(.login-page) main.page-transition-out {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 .container {
@@ -136,6 +143,19 @@ body:not(.login-page) main {
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* Animação de entrada para o container */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ----- Barra de CRUD ----- */

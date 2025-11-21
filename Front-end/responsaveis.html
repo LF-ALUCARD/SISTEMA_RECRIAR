@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Responsáveis - Sistema Recriar</title>
+    <link rel="stylesheet" href="style.css">
+        <style>
+        /* Modal de confirmação customizado */
+        .confirm-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 1200; }
+        .confirm-modal.show { display: flex; }
+        .confirm-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+        .confirm-modal-card { position: relative; background: #fff; border-radius: 8px; padding: 18px; max-width: 420px; width: calc(100% - 40px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2; }
+        .confirm-modal-card h3 { margin: 0 0 8px 0; font-size: 18px; }
+        .confirm-modal-card p { margin: 0 0 16px 0; color: #333; }
+        .confirm-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .confirm-modal .btn { padding: 8px 12px; border-radius: 4px; border: 1px solid transparent; cursor: pointer; }
+        .confirm-modal .btn:hover { opacity: 0.95; }
+        .confirm-modal .btn-danger { background: #e74c3c; color: #fff; border-color: rgba(0,0,0,0.05); }
+        .confirm-modal .btn-secondary { background: #f0f0f0; color: #111; }
+        @media (max-width:480px){ .confirm-modal-card{padding:14px} }
+        </style>
+    <script src="common.js" defer></script>
+</head>
+
+<body>
+    
+    <div id="menu-container"></div>
+
+        <!-- Modal de confirmação de exclusão -->
+        <div id="confirm-modal" class="confirm-modal" aria-hidden="true">
+            <div class="confirm-modal-backdrop" data-action="cancel"></div>
+            <div class="confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+                <h3 id="confirm-modal-title">Confirmação de exclusão</h3>
+                <p id="confirm-modal-message">Você realmente deseja excluir este responsável?</p>
+                <div class="confirm-modal-actions">
+                    <button id="confirm-cancel" class="btn btn-secondary">Cancelar</button>
+                    <button id="confirm-ok" class="btn btn-danger">Excluir</button>
+                </div>
+            </div>
+        </div>
+
+    <main>
+        <div class="container">
+            <h2>Gestão de Responsáveis</h2>
+            <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+
+            <div class="crud-bar">
+                <input type="search" 
+                       id="buscar-responsavel" 
+                       placeholder="Buscar por nome..." 
+                       aria-label="Buscar responsáveis">
+            </div>
+
+            <div class="table-container">
+                <table class="table" id="tabela-responsaveis">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>E-mail</th>
+                            <th>Telefone</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-responsaveis">
+                        <!-- Dados carregados via JavaScript -->
+                    </tbody>
+                </table>
+                <div id="no-data-message" class="no-data-message" style="display: none;">
+                    <p>Nenhum responsável encontrado.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="menu.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!Auth.requireAuth()) return;
+            const searchInput = document.getElementById('buscar-responsavel');
+            if (searchInput) searchInput.addEventListener('input', debounce(loadResponsaveis, 300));
+            // Carrega a lista de responsáveis
+            loadResponsaveis();
+        });
+
+        async function loadResponsaveis() {
+            const searchTerm = document.getElementById("buscar-responsavel").value.trim();
+            
+            try {
+                // Usar o endpoint de listagem de responsáveis
+                const responsaveis = await API.get("/aluno/list_responsavel");
+                
+                // Filtrar localmente se houver termo de busca
+                let responsaveisFiltrados = responsaveis;
+                if (searchTerm) {
+                    responsaveisFiltrados = responsaveis.filter(resp => 
+                        resp.nome.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
+                
+                renderTabelaResponsaveis(responsaveisFiltrados);
+            } catch (error) {
+                console.error("Erro ao carregar responsáveis:", error);
+                UI.showMessage("Não foi possível carregar a lista de responsáveis.", "error");
+                renderTabelaResponsaveis([]); // Limpa a tabela em caso de erro
+            }
+        }
+
+        function renderTabelaResponsaveis(responsaveis) {
+            const tbody = document.getElementById("tbody-responsaveis");
+            const noDataMessage = document.getElementById("no-data-message");
+            tbody.innerHTML = "";
+
+            if (!responsaveis || responsaveis.length === 0) {
+                noDataMessage.style.display = "block";
+                return;
+            }
+
+            noDataMessage.style.display = "none";
+
+            responsaveis.forEach(responsavel => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${responsavel.id || ''}</td>
+                    <td>${responsavel.nome || ''}</td>
+                    <td>${responsavel['e-mail'] || responsavel.email || ''}</td>
+                    <td>${Format.phone(responsavel.telefone)}</td>
+                    <td>
+                        <button class="btn-action btn-danger" onclick="excluirResponsavel(${responsavel.id})">Excluir</button>
+                    </td>
+                `;
+            });
+        }
+
+        /**
+         * Exibe um modal de confirmação estilizado.
+         * Retorna uma Promise que resolve true se o usuário confirmar, ou false caso cancele.
+         */
+        function showConfirmModal(message) {
+            return new Promise(resolve => {
+                const modal = document.getElementById('confirm-modal');
+                const msgEl = document.getElementById('confirm-modal-message');
+                const btnOk = document.getElementById('confirm-ok');
+                const btnCancel = document.getElementById('confirm-cancel');
+                const backdrop = modal.querySelector('.confirm-modal-backdrop');
+
+                msgEl.textContent = message || 'Você tem certeza?';
+
+                function cleanup() {
+                    modal.classList.remove('show');
+                    modal.setAttribute('aria-hidden', 'true');
+                    btnOk.removeEventListener('click', onOk);
+                    btnCancel.removeEventListener('click', onCancel);
+                    backdrop.removeEventListener('click', onCancel);
+                    document.removeEventListener('keydown', onKeyDown);
+                }
+
+                function onOk() { cleanup(); resolve(true); }
+                function onCancel() { cleanup(); resolve(false); }
+                function onKeyDown(e) { if (e.key === 'Escape') onCancel(); }
+
+                btnOk.addEventListener('click', onOk);
+                btnCancel.addEventListener('click', onCancel);
+                backdrop.addEventListener('click', onCancel);
+                document.addEventListener('keydown', onKeyDown);
+
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+                // foco no botão de confirmar para acessibilidade
+                setTimeout(() => btnOk.focus(), 50);
+            });
+        }
+
+        async function excluirResponsavel(id) {
+            const message = 'Você realmente deseja excluir este responsável? Esta ação não pode ser desfeita.';
+            const confirmed = await showConfirmModal(message);
+            if (!confirmed) return;
+
+            try {
+                // Usar endpoint /responsaveis/delete/{id}
+                await API.delete(`/responsaveis/delete/${id}`);
+                UI.showMessage("Responsável excluído com sucesso!", "success");
+                loadResponsaveis(); // Recarrega a lista
+            } catch (error) {
+                console.error("Erro ao excluir responsável:", error);
+                UI.showMessage(error.message || "Erro ao excluir responsável.", "error");
+            }
+        }
+
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+    </script>
+</body>
+</html>

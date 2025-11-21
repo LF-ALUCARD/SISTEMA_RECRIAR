@@ -53,6 +53,14 @@ function initializeLayout() {
             <span class="menu-icon">📚</span>
             <span class="menu-text">Turmas</span>
           </a></li>
+          <li><a href="responsaveis.html" data-page="responsaveis">
+            <span class="menu-icon">👥</span>
+            <span class="menu-text">Responsáveis</span>
+          </a></li>
+          <li><a href="relatorios.html" data-page="relatorios">
+            <span class="menu-icon">📊</span>
+            <span class="menu-text">Relatórios</span>
+          </a></li>
           <li><a href="admin.html" data-page="admin">
             <span class="menu-icon">⚙️</span>
             <span class="menu-text">Admin</span>
@@ -78,6 +86,8 @@ function initializeLayout() {
         professores: ['ADMIN'],
         // Turmas agora visível apenas para ADMIN
         turmas: ['ADMIN'],
+        responsaveis: ['ADMIN'],
+        relatorios: ['ADMIN', 'PROFESSOR'],
         admin: ['ADMIN']
       };
 
@@ -165,7 +175,9 @@ function getCurrentPageName() {
     'administrar-turma.html': 'turmas',
     'novo-usuario.html': 'admin',
     'alterar-usuario.html': 'admin',
-    'excluir-usuario.html': 'admin'
+    'excluir-usuario.html': 'admin',
+    'responsaveis.html': 'responsaveis',
+    'relatorios.html': 'relatorios'
   };
   
   return pageMap[filename] || 'menu';
@@ -196,13 +208,16 @@ if (logoutBtn) {
       // Armazenar o href para navegação
       const href = this.getAttribute('href');
       
-      // Adicionar classe de fade-out ao conteúdo principal
-      document.querySelector('main').style.opacity = '0';
+      // Adicionar classe de transição ao conteúdo principal
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        mainElement.classList.add('page-transition-out');
+      }
       
       // Aguardar a animação de fade-out e navegar
       setTimeout(() => {
         window.location.href = href;
-      }, 150);
+      }, 300);
     });
   });
 }
